@@ -80,7 +80,7 @@ public sealed class MainWindow : Window, IDisposable
 
         var key = string.Create(
             CultureInfo.InvariantCulture,
-            $"{model.RefreshCount}|{this.selectedAetheryteId}|{this.selectedTerritoryId}|{config.AetheryteTickets}|{config.AutoReadSlots}|{slots.IsLive}|{slots.FreeDestinationId}|{string.Join(',', slots.Favored)}|{config.MaxRoutesShown}|{config.HideTravelAbove999}|{config.ConsiderMultiLeg}{config.ConsiderReturn}{config.ConsiderTickets}{config.ConsiderEstates}{config.ConsiderFreeSlot}{config.ConsiderFavoredSlots}{config.ConsiderDirect}");
+            $"{model.RefreshCount}|{this.selectedAetheryteId}|{this.selectedTerritoryId}|{config.AetheryteTickets}|{config.AutoReadSlots}|{slots.IsLive}|{slots.FreeDestinationId}|{slots.HomePointId}|{string.Join(',', slots.Favored)}|{config.MaxRoutesShown}|{config.HideTravelAbove999}|{config.IncludeWalkInDestinations}|{config.CompactNumbers}|{config.ConsiderMultiLeg}{config.ConsiderReturn}{config.ConsiderTickets}{config.ConsiderEstates}{config.ConsiderFreeSlot}{config.ConsiderFavoredSlots}{config.ConsiderDirect}");
 
         if (key != this.cacheKey)
         {
@@ -108,7 +108,7 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.TableNextRow();
 
             ImGui.TableSetColumnIndex(0);
-            this.DrawDestinationPicker(model);
+            this.DrawDestinationPicker(model, config);
 
             ImGui.TableSetColumnIndex(1);
             this.DrawRoutes(model, config, this.cachedSlots, this.cachedPlan, this.cachedAdvice);
@@ -180,7 +180,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.Separator();
     }
 
-    private void DrawDestinationPicker(CostModel model)
+    private void DrawDestinationPicker(CostModel model, Configuration config)
     {
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("##ap_search", "Search aetheryte or zone...", ref this.search, 128);
@@ -217,9 +217,20 @@ public sealed class MainWindow : Window, IDisposable
                         .ToList();
 
                     if (priced.Count == 0)
-                        continue;
+                    {
+                        if (!config.IncludeWalkInDestinations)
+                            continue;
 
-                    var best = priced.Min(e => e.LiveCost);
+                        // Only list walk-in zones that have at least one unlocked neighbour in the same PlaceNameZone.
+                        var zoneName = Plugin.GameData.ZoneName(zone.TerritoryId);
+                        var neighbourIds = SlotLogic.WalkInCandidateIds(
+                            zone.TerritoryId,
+                            zoneName,
+                            Plugin.GameData.AllAetherytes.Select(a => (a.Id, a.TerritoryId, a.ZoneName, a.IsAetheryte, a.Invisible)));
+                        if (!model.Entries.Any(e => neighbourIds.Contains(e.AetheryteId) && !e.IsEstate))
+                            continue;
+                    }
+
                     var label = $"{zone.Label}##zone{zone.TerritoryId}";
                     var selected = this.selectedTerritoryId == zone.TerritoryId;
 
@@ -234,7 +245,10 @@ public sealed class MainWindow : Window, IDisposable
                     ImGui.PopStyleColor();
 
                     ImGui.SameLine();
-                    this.DrawCostTag(best, priced.Count > 1 ? $"{priced.Count} aetherytes" : "1 aetheryte");
+                    if (priced.Count == 0)
+                        ImGui.TextColored(Muted, "walk-in");
+                    else
+                        this.DrawCostTag(config, priced.Min(e => e.LiveCost), priced.Count > 1 ? $"{priced.Count} aetherytes" : "1 aetheryte");
                 }
 
                 ImGuiHelpers.ScaledDummy(6f);
@@ -262,13 +276,13 @@ public sealed class MainWindow : Window, IDisposable
             PopText(color);
 
             ImGui.SameLine();
-            this.DrawCostTag(entry.LiveCost, entry.BaseIsExact ? string.Empty : "projected");
+            this.DrawCostTag(config, entry.LiveCost, entry.BaseIsExact ? string.Empty : "projected");
         }
     }
 
-    private void DrawCostTag(uint cost, string suffix)
+    private void DrawCostTag(Configuration config, uint cost, string suffix)
     {
-        var text = cost == 0 ? "free" : $"{cost:N0}g";
+        var text = cost == 0 ? "free" : FormatGil(config, cost) + "g";
         ImGui.PushStyleColor(ImGuiCol.Text, cost == 0 ? Good : Gold);
         ImGui.TextUnformatted(text);
         ImGui.PopStyleColor();
@@ -279,6 +293,9 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.TextColored(Muted, suffix);
         }
     }
+
+    private static string FormatGil(Configuration config, long cost)
+        => config.CompactNumbers ? cost.ToString("N0") : cost.ToString(CultureInfo.InvariantCulture);
 
     private void DrawRoutes(CostModel model, Configuration config, SlotState slots, List<TravelOption> plan, SlotAdvice advice)
     {
@@ -328,13 +345,15 @@ public sealed class MainWindow : Window, IDisposable
                 PushText(routeColor);
                 ImGui.TextUnformatted(option.ModeLabel + (isBest ? "  ★ cheapest" : string.Empty));
                 PopText(routeColor);
+                var showTooltip = ImGui.IsItemHovered();
 
                 if (option.SelectionLabel.Length > 0 && option.Mode != TravelMode.Direct)
                 {
                     ImGui.TextColored(Muted, $"  via {option.SelectionLabel}");
+                    showTooltip = showTooltip || ImGui.IsItemHovered();
                 }
 
-                if (ImGui.IsItemHovered() || ImGui.IsItemActive())
+                if (showTooltip)
                 {
                     var lines = new List<string>(option.Steps);
                     if (option.Note.Length > 0)
@@ -345,7 +364,7 @@ public sealed class MainWindow : Window, IDisposable
 
                 ImGui.TableSetColumnIndex(1);
                 ImGui.PushStyleColor(ImGuiCol.Text, option.GilCost == 0 ? Good : option.Feasible ? Gold : Muted);
-                ImGui.TextUnformatted(option.GilCost == 0 ? "0 (free)" : $"{option.GilCost:N0}");
+                ImGui.TextUnformatted(option.GilCost == 0 ? "0 (free)" : FormatGil(config, option.GilCost));
                 ImGui.PopStyleColor();
                 if (!option.CostIsExact)
                 {
@@ -362,7 +381,7 @@ public sealed class MainWindow : Window, IDisposable
                 ImGui.TableSetColumnIndex(2);
                 if (option.Savings > 0)
                 {
-                    ImGui.TextColored(Good, $"-{option.Savings:N0}");
+                    ImGui.TextColored(Good, $"-{FormatGil(config, option.Savings)}");
                 }
                 else
                 {
@@ -418,9 +437,9 @@ public sealed class MainWindow : Window, IDisposable
                     ImGui.TableSetColumnIndex(0);
                     ImGui.TextUnformatted(candidate.Label + (candidate.IsFree ? "  [free]" : candidate.IsFavored ? "  [fav]" : string.Empty));
                     ImGui.TableSetColumnIndex(1);
-                    ImGui.TextColored(Gold, $"{candidate.BaseCost:N0}");
+                    ImGui.TextColored(Gold, FormatGil(config, candidate.BaseCost));
                     ImGui.TableSetColumnIndex(2);
-                    ImGui.TextColored(Muted, $"{CostModel.ApplyFavoured(candidate.BaseCost):N0}");
+                    ImGui.TextColored(Muted, FormatGil(config, CostModel.ApplyFavoured(candidate.BaseCost)));
                 }
 
                 ImGui.EndTable();

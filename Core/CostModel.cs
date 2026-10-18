@@ -145,6 +145,7 @@ public sealed class CostModel
         }
 
         var freeIds = ReadFreeDestinationFlags();
+        var freeIdFromPlayer = ReadPlayerFreeAetheryteId();
 
         this.Entries.Clear();
         this.byKey.Clear();
@@ -159,7 +160,10 @@ public sealed class CostModel
             var sub = source.SubIndex;
             var info = Plugin.GameData.Get(id);
 
-            var isFree = freeIds.Contains((id, sub)) || freeIds.Contains((id, 0));
+            // Prefer IPlayerState.FreeAetheryte; Telepo flags remain as a SubIndex-aware fallback.
+            var isFree = (freeIdFromPlayer is { } fid && id == fid)
+                         || freeIds.Contains((id, sub))
+                         || freeIds.Contains((id, 0));
             var entry = new Entry
             {
                 AetheryteId = id,
@@ -191,7 +195,9 @@ public sealed class CostModel
 
             this.Entries.Add(entry);
             this.byKey[(id, sub)] = entry;
-            this.byAetheryteId.TryAdd(id, entry);
+            // Prefer a non-estate row when the same aetheryte id appears with multiple SubIndex values.
+            if (!this.byAetheryteId.TryGetValue(id, out var existing) || (existing.IsEstate && !entry.IsEstate))
+                this.byAetheryteId[id] = entry;
         }
 
         this.Entries.Sort((a, b) => Nullable.Compare(a.BaseCost, b.BaseCost));
@@ -199,10 +205,28 @@ public sealed class CostModel
         this.HasLiveData = true;
     }
 
+    /// <summary>Reads the free-destination aetheryte id from <c>IPlayerState</c> when available.</summary>
+    private static uint? ReadPlayerFreeAetheryteId()
+    {
+        try
+        {
+            if (!Plugin.PlayerState.IsLoaded)
+                return null;
+
+            var rowId = Plugin.PlayerState.FreeAetheryte.RowId;
+            return rowId == 0 ? null : rowId;
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Debug(ex, "[Aetherpath] could not read FreeAetheryte from IPlayerState.");
+            return null;
+        }
+    }
+
     /// <summary>
-    /// Reads the IsFreeAetheryte flag straight from Telepo.TeleportList. Dalamud's own
-    /// IAetheryteEntry does not expose it, and it is the only place the game records which
-    /// destination your one-time-password free transfer is bound to.
+    /// Reads the IsFreeAetheryte flag from Telepo.TeleportList as a SubIndex-aware fallback.
+    /// Dalamud's <c>IAetheryteEntry</c> does not expose the flag; <c>IPlayerState.FreeAetheryte</c>
+    /// is preferred when present.
     /// </summary>
     private static unsafe HashSet<(uint Id, byte Sub)> ReadFreeDestinationFlags()
     {
