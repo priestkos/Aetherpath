@@ -111,6 +111,8 @@ public sealed class ConfigWindow : Window, IDisposable
         {
             Check("Show diagnostics counters", config.ShowDiagnostics, v => config.ShowDiagnostics = v);
             Check("Hide routes costing 1000 gil or more", config.HideTravelAbove999, v => config.HideTravelAbove999 = v);
+            Check("Include walk-in zones (no local aetheryte)", config.IncludeWalkInDestinations, v => config.IncludeWalkInDestinations = v);
+            Check("Compact number formatting", config.CompactNumbers, v => config.CompactNumbers = v);
 
             ImGui.TextUnformatted("Routes shown");
             var max = config.MaxRoutesShown;

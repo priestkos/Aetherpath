@@ -111,16 +111,13 @@ public sealed class RoutePlanner
         if (inZone.Count > 0)
             return inZone;
 
-        // No aetheryte of its own: the destination is reachable by teleporting into the same zone
-        // and walking, so treat the zone's aetherytes as candidates.
-        var zone = Plugin.GameData.GetZone(territoryId);
-        if (zone == null)
-            return new List<CostModel.Entry>();
-
-        var ids = Plugin.GameData.AllZones
-            .Where(z => z.RegionName.Length > 0 && z.RegionName == zone.RegionName)
-            .SelectMany(z => z.AetheryteIds)
-            .ToHashSet();
+        // No aetheryte of its own: reachable by teleporting into the same PlaceNameZone and walking.
+        // Use zone name (not the broader PlaceNameRegion) so La Noscea does not pull in every coast.
+        var zoneName = Plugin.GameData.ZoneName(territoryId);
+        var ids = SlotLogic.WalkInCandidateIds(
+            territoryId,
+            zoneName,
+            Plugin.GameData.AllAetherytes.Select(a => (a.Id, a.TerritoryId, a.ZoneName, a.IsAetheryte, a.Invisible)));
 
         return model.Entries
             .Where(e => ids.Contains(e.AetheryteId) && !e.IsEstate)
@@ -359,25 +356,15 @@ public sealed class RoutePlanner
         Configuration config,
         CostModel model)
     {
+        _ = config;
         _ = model;
 
-        if (slots.IsLive)
-        {
-            // The game's own number already has your perks applied - nothing to project.
-            return (entry.LiveCost, entry.BaseCost != null || entry.LiveCost == 0, entry.BaseCost);
-        }
-
-        var baseline = entry.BaseCost;
-        if (slots.IsFree(entry.AetheryteId))
-            return (0, true, baseline);
-
-        if (baseline == null)
-            return (entry.LiveCost, false, null);
-
-        if (slots.IsFavored(entry.AetheryteId))
-            return (CostModel.ApplyFavoured(baseline.Value), true, baseline);
-
-        return ((uint)baseline.Value, true, baseline);
+        return SlotLogic.PriceFor(
+            entry.LiveCost,
+            entry.BaseCost,
+            slots.IsLive,
+            slots.IsFree(entry.AetheryteId),
+            slots.IsFavored(entry.AetheryteId));
     }
 }
 

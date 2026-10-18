@@ -81,6 +81,8 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= this.ToggleMainUi;
 
         this.WindowSystem.RemoveAllWindows();
+        this.mainWindow.Dispose();
+        this.configWindow.Dispose();
 
         CommandManager.RemoveHandler("/aetherpath");
         CommandManager.RemoveHandler("/ap");

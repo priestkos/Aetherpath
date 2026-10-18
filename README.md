@@ -21,11 +21,13 @@ already built for you and does the maths.
 ## Reading vs. typing your slots
 
 Aetherpath reads your **free destination** (the one that comes from registering a one-time-password
-authenticator) and your **favored destinations** straight out of the game:
+authenticator), **favored destinations**, and **home point** (for Return) straight out of the game:
 
-- favored flags and live prices come from Dalamud's `IAetheryteList`;
-- the free-destination flag lives in `Telepo.TeleportList[].IsFreeAetheryte`, which Dalamud does not
-  surface, so it is read from the client struct.
+- home, free, and favored ids prefer Dalamud's `IPlayerState` (`HomeAetheryte`, `FreeAetheryte`,
+  `FavoriteAetherytes`);
+- live prices and favored flags on each row still come from `IAetheryteList`;
+- if `IPlayerState.FreeAetheryte` is unavailable, the free-destination flag is read from
+  `Telepo.TeleportList[].IsFreeAetheryte` as a SubIndex-aware fallback.
 
 Three favored slots, or four if the Companion app unlock is on your account — auto-read picks up
 however many the game reports.
@@ -88,6 +90,13 @@ produced from the MSBuild properties in `Aetherpath.csproj` — never hand-edit 
   cd tools/mathcheck && dotnet run -c Release
   ```
 
+- `tools/logiccheck` exercises slot override merge, projected favored exactness, and zone-name
+  walk-in candidate selection (`Core/SlotLogic.cs`):
+
+  ```
+  cd tools/logiccheck && dotnet run -c Release
+  ```
+
 - Zone grouping used for walk-in suggestions was checked against the game's sheets: Ul'dah's two
   territories both report `PlaceNameZone = "Ul'dah"`, Limsa Lominsa Lower Decks reports
   `"Limsa Lominsa"` (its `PlaceNameRegion` is the broader `"La Noscea"`), so same-zone neighbours
@@ -108,9 +117,11 @@ Configuration.cs           preferences and the manual slot overrides
 Core/Models.cs             sheet-level aetheryte and zone records
 Core/GameData.cs           sheet index: names, zones, regions, walk neighbours
 Core/CostModel.cs          live prices, discount inversion, free-destination flag
+Core/SlotLogic.cs          pure slot-merge / pricing helpers (no Dalamud)
 Core/SlotState.cs          free/favored/home slot state, live or overridden
 Core/RoutePlanner.cs       ranks every travel option; slot optimizer
 Windows/MainWindow.cs      destination picker, route table, slot advice
 Windows/ConfigWindow.cs    settings
 tools/mathcheck/           standalone harness for the discount maths
+tools/logiccheck/          standalone harness for slot merge + walk-in logic
 ```

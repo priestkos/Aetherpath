@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+
 namespace Aetherpath.Core;
 
 /// <summary>
@@ -14,13 +17,13 @@ public sealed class SlotState
     /// Three favored destinations, or four once you have logged into the Companion app at least
     /// once (that unlock is permanent). Auto-read picks up however many the game reports.
     /// </summary>
-    public const int FavoredSlotCount = 4;
+    public const int FavoredSlotCount = SlotLogic.FavoredSlotCount;
 
     /// <summary>Your one-time-password free transfer destination.</summary>
     public uint? FreeDestinationId { get; set; }
 
-    /// <summary>Up to three favored destinations.</summary>
-    public List<uint> Favored { get; set; } = new() { 0, 0, 0 };
+    /// <summary>Up to four favored destinations, index-aligned with the override fields.</summary>
+    public List<uint> Favored { get; set; } = new() { 0, 0, 0, 0 };
 
     /// <summary>Home point used by Return.</summary>
     public uint? HomePointId { get; set; }
@@ -34,40 +37,46 @@ public sealed class SlotState
 
     public int FreeFavoredSlots => this.Favored.Count(id => id == 0);
 
+    /// <summary>
+    /// Build slot state from already-resolved live ids. Prefer this over reading services directly
+    /// when testing, or when a caller has already queried <c>IPlayerState</c>.
+    /// </summary>
+    public static SlotState FromLive(uint? freeDestinationId, IEnumerable<uint> favoredIds, uint? homePointId)
+    {
+        return new SlotState
+        {
+            FreeDestinationId = freeDestinationId is 0 or null ? null : freeDestinationId,
+            HomePointId = homePointId is 0 or null ? null : homePointId,
+            IsLive = true,
+            Favored = SlotLogic.NormalizeFavoredSlots(favoredIds),
+        };
+    }
+
     /// <summary>Build the state from what the game reports right now.</summary>
     public static SlotState FromGame(CostModel model)
     {
-        var state = new SlotState
-        {
-            FreeDestinationId = model.CurrentFreeDestinationId,
-            IsLive = true,
-        };
+        // IPlayerState is the preferred source for home / free / favored. Fall back to the
+        // teleport-list flags CostModel already collected when a field is unavailable.
+        var free = ReadPlayerAetheryteId(static () => Plugin.PlayerState.FreeAetheryte)
+                   ?? model.CurrentFreeDestinationId;
+        var home = ReadPlayerAetheryteId(static () => Plugin.PlayerState.HomeAetheryte);
+        var favored = ReadPlayerFavoriteIds()
+                      ?? model.CurrentFavoured.Select(e => e.AetheryteId);
 
-        state.Favored = model.CurrentFavoured.Select(e => e.AetheryteId).Take(FavoredSlotCount).ToList();
-        while (state.Favored.Count < FavoredSlotCount)
-            state.Favored.Add(0);
-
-        return state;
+        return FromLive(free, favored, home);
     }
 
     /// <summary>Build the state from the manual override fields in the config.</summary>
     public static SlotState FromConfig(Configuration config)
     {
-        var state = new SlotState
+        return new SlotState
         {
             FreeDestinationId = config.OverrideFreeDestination == 0 ? null : config.OverrideFreeDestination,
             HomePointId = config.OverrideHomePoint == 0 ? null : config.OverrideHomePoint,
             IsLive = false,
+            // Preserve slot indices: a value in override slot 2 must stay in slot 2, not compact to slot 0.
+            Favored = SlotLogic.NormalizeFavoredSlots(config.OverrideFavored),
         };
-
-        state.Favored = config.OverrideFavored
-            .Where(id => id != 0)
-            .Take(FavoredSlotCount)
-            .ToList();
-        while (state.Favored.Count < FavoredSlotCount)
-            state.Favored.Add(0);
-
-        return state;
     }
 
     /// <summary>
@@ -75,48 +84,91 @@ public sealed class SlotState
     /// we use what the game told us.
     /// </summary>
     public static SlotState Resolve(Configuration config, CostModel model)
+        => Resolve(config, FromGame(model));
+
+    /// <summary>
+    /// Same as <see cref="Resolve(Configuration, CostModel)"/> but takes a pre-built live state so
+    /// the merge rules can be exercised without Dalamud services.
+    /// </summary>
+    public static SlotState Resolve(Configuration config, SlotState live)
     {
-        var hasOverride = config.OverrideFreeDestination != 0
-                          || config.OverrideHomePoint != 0
-                          || config.OverrideFavored.Any(id => id != 0);
+        var (free, home, favored, isLive) = SlotLogic.ResolveOverrides(
+            config.AutoReadSlots,
+            config.OverrideFreeDestination,
+            config.OverrideHomePoint,
+            config.OverrideFavored,
+            live.FreeDestinationId,
+            live.HomePointId,
+            live.Favored);
 
-        if (config.AutoReadSlots && !hasOverride)
-            return FromGame(model);
-
-        var manual = FromConfig(config);
-
-        // Manual override that only fills *some* fields: keep the game's values for the rest so a
-        // half-filled override does not silently pretend you have empty slots.
-        if (config.AutoReadSlots)
+        if (isLive)
         {
-            var live = FromGame(model);
-            manual.FreeDestinationId ??= live.FreeDestinationId;
-            manual.HomePointId ??= live.HomePointId;
-            for (var i = 0; i < FavoredSlotCount; i++)
-            {
-                if (manual.Favored[i] == 0 && live.Favored[i] != 0)
-                    manual.Favored[i] = live.Favored[i];
-            }
-
-            // An override that describes the same setup the game already has is not a what-if:
-            // keep the exact live prices instead of projecting them.
-            if (manual.Matches(live))
-                return live;
+            live.IsLive = true;
+            // Keep the live object's favored list normalized in case the caller passed a short one.
+            live.Favored = favored;
+            live.FreeDestinationId = free;
+            live.HomePointId = home;
+            return live;
         }
 
-        manual.IsLive = false;
-        return manual;
+        return new SlotState
+        {
+            FreeDestinationId = free,
+            HomePointId = home,
+            Favored = favored,
+            IsLive = false,
+        };
     }
 
     /// <summary>True when two slot states describe the same configuration.</summary>
     public bool Matches(SlotState other)
-    {
-        if (this.FreeDestinationId != other.FreeDestinationId)
-            return false;
-        if (this.HomePointId != other.HomePointId)
-            return false;
+        => SlotLogic.SlotSetsMatch(
+            this.FreeDestinationId,
+            this.HomePointId,
+            this.Favored,
+            other.FreeDestinationId,
+            other.HomePointId,
+            other.Favored);
 
-        return this.Favored.OrderBy(id => id).SequenceEqual(other.Favored.OrderBy(id => id));
+    private static uint? ReadPlayerAetheryteId(Func<RowRef<Aetheryte>> read)
+    {
+        try
+        {
+            if (!Plugin.PlayerState.IsLoaded)
+                return null;
+
+            var row = read();
+            return row.RowId == 0 ? null : row.RowId;
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Debug(ex, "[Aetherpath] could not read aetheryte id from IPlayerState.");
+            return null;
+        }
+    }
+
+    private static IEnumerable<uint>? ReadPlayerFavoriteIds()
+    {
+        try
+        {
+            if (!Plugin.PlayerState.IsLoaded)
+                return null;
+
+            var favorites = Plugin.PlayerState.FavoriteAetherytes;
+            if (favorites == null || favorites.Count == 0)
+                return null;
+
+            return favorites
+                .Select(r => r.RowId)
+                .Where(id => id != 0)
+                .Take(FavoredSlotCount)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Debug(ex, "[Aetherpath] could not read favorite aetherytes from IPlayerState.");
+            return null;
+        }
     }
 }
 
