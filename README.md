@@ -1,112 +1,79 @@
 # Aetherpath
 
-A Dalamud plugin that prices **every way** to get where you're going in FFXIV, and tells you where
-your free transfer and favored destinations earn the most gil.
+Prices every way to get where you're going in FFXIV, and shows where your free transfer and favored destinations earn the most gil.
 
-It is **read-only**: it never teleports, never spends an aetheryte ticket, never changes your
-free/favored settings and never writes to game memory. It reads the teleport window the game has
-already built for you and does the maths.
+`/aetherpath` · Dalamud API 15 · .NET 10
 
-## What it answers
+## What it does
 
-- **"What is the cheapest way to get to X?"** — direct teleport, your OTP free transfer, a favored
-  slot, an aetheryte ticket, Return to your home point, an estate/apartment teleport, or teleporting
-  to a cheaper neighbour and walking/aethernet-ing in.
-- **"What is my free transfer / favored slots actually worth?"** — the slot optimizer prices what
-  moving a slot to a destination would save, and what the destination holding it now would go back
-  to costing.
-- **"Where should my slots live?"** — a value table of the destinations where each perk saves the
-  most gil.
+- **Read-only** — no teleports, no ticket spending, no changes to your free/favored settings, no writes to game memory. It reads the teleport window the game already built and does the maths.
+- **Ranks every route** — direct teleport, OTP free transfer, favored slot, aetheryte ticket, Return to your home point, estate or apartment teleport, or a cheaper neighbour plus a walk / aethernet leg.
+- **Values your slots** — the slot optimizer prices what moving the free transfer or a favored slot would save, what the destination holding it now would go back to costing, and which destinations each perk is worth most on.
+- **Prices what-ifs** — overrides answer "what if my free transfer were Revenant's Toll?"; whenever one is in force the window says so, because the numbers become projections from where you stand.
 
-## Reading vs. typing your slots
+## How it works
 
-Aetherpath reads your **free destination** (the one that comes from registering a one-time-password
-authenticator), **favored destinations**, and **home point** (for Return) straight out of the game:
-
-- home, free, and favored ids prefer Dalamud's `IPlayerState` (`HomeAetheryte`, `FreeAetheryte`,
-  `FavoriteAetherytes`);
-- live prices and favored flags on each row still come from `IAetheryteList`;
-- if `IPlayerState.FreeAetheryte` is unavailable, the free-destination flag is read from
-  `Telepo.TeleportList[].IsFreeAetheryte` as a SubIndex-aware fallback.
-
-Three favored slots, or four if the Companion app unlock is on your account — auto-read picks up
-however many the game reports.
-
-Type values into **Settings → My travel slots** to override any of them. Overrides let you price
-*what-if* setups ("what if I moved my free transfer to Revenant's Toll?"). If your override happens
-to describe exactly what the game already has, Aetherpath uses the game's exact prices instead of
-projections. Whenever an override is in force the window says so, because the numbers become
-projections priced from your current location.
-
-## Where the prices come from
+Home, free and favored ids prefer `IPlayerState` (`HomeAetheryte`, `FreeAetheryte`, `FavoriteAetherytes`); live prices and favored flags come from `IAetheryteList`, with a SubIndex-matched `Telepo.TeleportList[].IsFreeAetheryte` fallback. Favored slots are three, or four with the Companion app unlock; auto-read takes what the game reports. An override matching the game's own setup collapses back to its exact prices.
 
 | Number | Source | Accuracy |
 | --- | --- | --- |
-| What you'd pay right now | The game's teleport list, perks already applied | Exact |
-| Full price of an un-discounted destination | Same number | Exact |
-| Full price of a destination that is currently favored | Live price × 2 (favored destinations are billed at 50%; the fee cap applies before discounts) | ±1 gil, shown as projected |
-| Full price of the destination that is currently free | Not recoverable — the game reports 0 | Shown as unpriced, never invented |
-| Favored price of a destination that isn't favored | Full price ÷ 2 | ±1 gil, shown as projected |
+| What you'd pay now | Game teleport list, perks applied | Exact |
+| Full price, un-discounted destination | Same number | Exact |
+| Full price, currently favored | Live × 2 (favored bills 50%; the fee cap applies before discounts) | ±1 gil, projected |
+| Full price, currently free | Not recoverable — the game reports 0 | Unpriced, never invented |
+| Favored price, not favored | Full ÷ 2 | ±1 gil, projected |
 
-Notes:
+- The ">1000 gil growth is halved" step is in the base distance curve, not the discount, so it is already inside the live numbers.
+- FC actions and squadron manuals move the live price; a base derived from a live number inherits whatever was active when read.
+- Return is free but on a 15 minute recast, so it is a full route only to your home point or something in the same zone — elsewhere it is the first leg only, and Aetherpath says so instead of pricing the rest.
+- Tickets are counted by hand: type how many you carry and ticket routes price at 0 gil + 1 ticket.
 
-- The ">1000 gil growth is halved" step in the game's cost curve belongs to the base distance
-  calculation, not to the discount, so it is already baked into the live numbers read from the game.
-- Free company actions and squadron manuals move the live price; a base derived from a live number
-  inherits whatever modifiers were in force when it was read.
-- Return is free but shares a 15 minute recast, so it is only ever offered as a full route to your
-  home point or to something in the same zone — otherwise it appears as a first leg only, and
-  Aetherpath says so rather than pretending the rest of the trip is priced.
-- Aetheryte tickets are counted manually (the plugin does not read your inventory): type how many
-  you carry into settings and ticket routes get priced at 0 gil + 1 ticket.
+## Commands
+
+| Command | Effect |
+| --- | --- |
+| `/aetherpath` | Destination picker and route table. |
+| `/aetherpath cfg` | Settings (`config` and `settings` also accepted). |
+| `/ap` | Alias for `/aetherpath`; arguments work the same. |
+
+## Settings
+
+- **My travel slots** — auto-read, or override the free destination, home point and four favored slots by aetheryte id, index-preserving (0 = none); nothing is written back.
+- **Travel options to price** — each of the seven route types can be switched off; ticket count is manual because bags are not read.
+- **Display** — diagnostics counters, compact numbers, hide routes of 1000 gil or more, include walk-in zones, 3–20 routes.
 
 ## Build
 
-Requires the .NET 10 SDK and the Dalamud dev distribution (normally
-`%AppData%\XIVLauncher\addon\Hooks\dev`, or set `DALAMUD_HOME`).
+Requires the .NET 10 SDK and the Dalamud dev distribution (`%APPDATA%\XIVLauncher\addon\Hooks\dev`, or `DALAMUD_HOME`).
 
 ```
-dotnet build -c Debug
+dotnet build -c Debug      # bin/Debug/Aetherpath.dll + generated Aetherpath.json manifest
+dotnet build -c Release    # zip in bin/Release/Aetherpath/latest.zip
 ```
 
-Output: `bin/Debug/Aetherpath.dll` plus the generated `Aetherpath.json` manifest (the manifest is
-produced from the MSBuild properties in `Aetherpath.csproj` — never hand-edit a manifest).
+The manifest comes from the MSBuild properties in `Aetherpath.csproj` — never hand-edit it.
 
-## Install into the game
+## Install (dev plugin)
 
-1. `/xlsettings` → **Experimental** → **Dev Plugin Locations** → add the full path to
-   `bin\Debug\Aetherpath.dll`.
-2. `/xlplugins` → **Dev Tools** → enable **Aetherpath**.
-3. `/aetherpath` opens the window, `/aetherpath cfg` opens settings. `/ap` is an alias.
+1. `/xlsettings` → Experimental → Dev Plugin Locations → add the full path to `bin\Debug\Aetherpath.dll`.
+2. `/xlplugins` → Dev Tools → enable **Aetherpath**.
+3. `/aetherpath` opens the window; `/aetherpath cfg` opens settings.
 4. Hot-reload works: rebuild and the game picks up the new DLL.
 
-## Verification
+## Tests
 
-- `dotnet build` is clean (0 warnings, 0 errors) against Dalamud API 15.
-- `tools/mathcheck` exercises the discount maths exactly as written in `Core/CostModel.cs`
-  (round-trip stability, the ±1 gil rounding on favored prices, unpriced free destinations):
+Two offline harnesses; neither needs the game. `tools/mathcheck` covers the discount maths in `Core/CostModel.cs` (round-trip stability, ±1 gil favored rounding, unpriced free destinations); `tools/logiccheck` covers slot override merge, projected favored exactness and zone-name walk-in selection (`Core/SlotLogic.cs`). Last run of mathcheck: `ALL CHECKS PASSED`, worst rounding delta 1 gil.
 
-  ```
-  cd tools/mathcheck && dotnet run -c Release
-  ```
+```
+cd tools/mathcheck && dotnet run -c Release
+cd tools/logiccheck && dotnet run -c Release
+```
 
-- `tools/logiccheck` exercises slot override merge, projected favored exactness, and zone-name
-  walk-in candidate selection (`Core/SlotLogic.cs`):
+## Limits
 
-  ```
-  cd tools/logiccheck && dotnet run -c Release
-  ```
-
-- Zone grouping used for walk-in suggestions was checked against the game's sheets: Ul'dah's two
-  territories both report `PlaceNameZone = "Ul'dah"`, Limsa Lominsa Lower Decks reports
-  `"Limsa Lominsa"` (its `PlaceNameRegion` is the broader `"La Noscea"`), so same-zone neighbours
-  are the ones you can actually walk/aethernet between.
-
-**Not verified:** in-game behaviour. Aetherpath has never been run inside FFXIV from this
-repository — the compile, the maths and the sheet assumptions are verified, but the live read of
-`Telepo.TeleportList` and the window layout need a session in the game. If a price looks wrong,
-compare it with the Teleport window: the free/favored flags are shown in the destination list, and
-the diagnostics counters in settings say how many entries were priced exactly vs projected.
+- **Not verified in game.** Never run inside FFXIV from this repository: the maths and sheet assumptions are checked offline, the live `Telepo.TeleportList` read and the window layout need a session. If a price looks wrong, compare it with the Teleport window and read the diagnostics counters for exact vs projected entries.
+- Walk-in zone grouping was checked against the game's sheets, not in game: Ul'dah's two territories both report `PlaceNameZone = "Ul'dah"`, Limsa Lominsa Lower Decks reports `"Limsa Lominsa"` (its region is the broader `"La Noscea"`), so same-zone neighbours are the ones you can walk or aethernet between.
+- Nothing is priced without a logged-in character: the numbers come from the game's teleport list, so the route table stays empty at the title screen.
 
 ## Layout
 
