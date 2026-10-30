@@ -9,8 +9,8 @@
     <AssemblyName>Aetherpath</AssemblyName>
     <RootNamespace>Aetherpath</RootNamespace>
 
-    <Author>kos</Author>
-    <Authors>kos</Authors>
+    <Author>PriestKos</Author>
+    <Authors>PriestKos</Authors>
     <Name>Aetherpath</Name>
     <Punchline>Prices every way to get where you're going - and tells you where your free and favored slots earn the most gil.</Punchline>
     <Description>Reads the game's own live teleport prices, then ranks every travel option to your destination: direct teleport, free destination, favored slots, Return, aetheryte tickets, estate teleports and walk-in legs. Includes a slot optimizer that shows what your free transfer and three favored destinations would be worth if you moved them. Recommends only - it never executes a teleport or changes your settings.</Description>
