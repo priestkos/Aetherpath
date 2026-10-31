@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Aetherpath mock — diagnostics & slot value</title>
+  <link rel="stylesheet" href="imgui-mock.css" />
+</head>
+<body>
+  <div class="game-backdrop"></div>
+  <div class="window w860">
+    <div class="titlebar">Aetherpath</div>
+    <div class="content">
+      <div class="header-line">
+        <span class="accent">AETHER</span><span class="gold">PATH</span>
+        <span class="muted"> | you are in Ul'dah - Steps of Nald</span>
+        <span class="muted"> | free transfer: </span><span class="bad">not set</span>
+      </div>
+      <div class="header-line">
+        <span class="muted">favored: </span><span class="bad">none</span>
+      </div>
+      <div class="header-line muted" style="font-size:12px;margin-top:4px">
+        No free destination detected. If you have one (it comes from registering a one-time-password authenticator), type its aetheryte id in <span class="accent" style="opacity:0.85">/aetherpath cfg</span> to price routes around it.
+      </div>
+      <hr class="sep" />
+      <div class="layout-2col">
+        <div class="col">
+          <div class="fake-input" style="margin-bottom:8px;color:#888">Search aetheryte or zone...</div>
+          <div class="row-tools">
+            <span class="fake-check checked">Zones</span>
+            <span class="btn-sm">Clear</span>
+          </div>
+          <div class="scroll-panel muted" style="font-size:12px">… destinations …</div>
+        </div>
+        <div class="col">
+          <div class="accent">Pick a destination on the left.</div>
+          <div style="height:16px"></div>
+          <div class="accent" style="font-size:12px">BEST USE OF YOUR SLOTS</div>
+          <div class="gold" style="margin-top:4px">Set a free destination in settings to unlock free-transfer pricing.</div>
+          <div class="tree-node">What your slots are worth right now</div>
+          <table class="data" style="margin-top:6px">
+            <thead>
+              <tr><th>Destination</th><th>Full price</th><th>Favored</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Revenant's Toll Aetheryte</td>
+                <td class="gold">920</td>
+                <td class="muted">460</td>
+              </tr>
+              <tr>
+                <td>Camp Dragonhead Aetheryte  [fav]</td>
+                <td class="gold">780</td>
+                <td class="muted">390</td>
+              </tr>
+              <tr>
+                <td>Old Gridania Aetheryte  [free]</td>
+                <td class="gold">—</td>
+                <td class="muted">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="footer">
+        Aetherpath never teleports and never changes your settings - it only does the maths.
+        <span class="accent" style="opacity:0.65"> | </span>
+        <span class="muted">live entries: 42, exact: 38, projected: 3, unpriced: 1</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

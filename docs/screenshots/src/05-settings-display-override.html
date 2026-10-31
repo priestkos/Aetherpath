@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Aetherpath mock — display & manual override main</title>
+  <link rel="stylesheet" href="imgui-mock.css" />
+  <style>
+    .split { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    .split .window { flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <div class="game-backdrop"></div>
+  <div class="split">
+    <div class="window w520">
+      <div class="titlebar">Aetherpath settings</div>
+      <div class="content">
+        <div class="collapse-header">▼ Display</div>
+        <div class="collapse-body">
+          <div style="display:grid;gap:6px">
+            <span class="fake-check checked">Show diagnostics counters</span>
+            <span class="fake-check">Hide routes costing 1000 gil or more</span>
+            <span class="fake-check checked">Include walk-in zones (no local aetheryte)</span>
+            <span class="fake-check checked">Compact number formatting</span>
+          </div>
+          <div style="height:10px"></div>
+          <div>Routes shown</div>
+          <div class="slider-row">
+            <div class="slider-track"><div class="slider-fill" style="width:29%"></div></div>
+            <span class="muted">8</span>
+          </div>
+        </div>
+        <hr class="sep" />
+        <p class="muted" style="font-size:12px;line-height:1.45">
+          Open with <span class="accent" style="opacity:0.85">/aetherpath</span> or <span class="accent" style="opacity:0.85">/ap</span>; settings via <span class="accent" style="opacity:0.85">/aetherpath cfg</span>.
+        </p>
+      </div>
+    </div>
+    <div class="window w860" style="max-width:520px">
+      <div class="titlebar">Aetherpath</div>
+      <div class="content">
+        <div class="header-line">
+          <span class="accent">AETHER</span><span class="gold">PATH</span>
+          <span class="muted"> | you are in Idyllshire</span>
+        </div>
+        <div class="header-line">
+          <span class="muted">favored: </span><span class="accent" style="opacity:0.85">Idyllshire Aetheryte</span>
+          <span class="gold"> [manual override active - prices are projections from here]</span>
+        </div>
+        <hr class="sep" />
+        <div class="accent">Revenant's Toll Aetheryte</div>
+        <p class="gold" style="font-size:12px;margin-top:6px">
+          Manual override is on: these numbers are what your slots *would* do, priced from your current location.
+        </p>
+        <table class="data" style="margin-top:8px">
+          <thead><tr><th>Route</th><th>Gil</th><th>Saves</th><th>What it needs</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Direct teleport</td>
+              <td class="gold">640</td>
+              <td class="muted">baseline</td>
+              <td>no slots needed</td>
+            </tr>
+            <tr>
+              <td>Return (home point)</td>
+              <td class="good">0 (free)</td>
+              <td class="good">-640</td>
+              <td>Return recast (15 min) <span class="muted">first leg only</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="footer">Aetherpath never teleports and never changes your settings - it only does the maths.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
