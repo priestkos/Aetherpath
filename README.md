@@ -1,5 +1,7 @@
 # Aetherpath
 
+<img src="images/icon.png" width="96">
+
 Prices every way to get where you're going in FFXIV, and shows where your free transfer and favored destinations earn the most gil.
 
 `/aetherpath` · Dalamud API 15 · .NET 10
