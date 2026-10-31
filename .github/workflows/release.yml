@@ -40,17 +40,37 @@ jobs:
             Select-Object -First 1
           if (-not $built) { throw 'Could not find latest.zip under bin/Release' }
 
+          [xml]$csproj = Get-Content -LiteralPath 'Aetherpath.csproj'
+          $assemblyName = ($csproj.Project.PropertyGroup | Where-Object { $_.AssemblyName } | Select-Object -First 1).AssemblyName
+          if ([string]::IsNullOrWhiteSpace($assemblyName)) {
+            throw 'Could not read AssemblyName from Aetherpath.csproj'
+          }
+
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $archive = [System.IO.Compression.ZipFile]::OpenRead($built.FullName)
           try {
-            $jsonEntry = $archive.Entries | Where-Object { $_.Name -like '*.json' } | Select-Object -First 1
-            if (-not $jsonEntry) { throw 'No manifest .json in latest.zip' }
-            $reader = New-Object System.IO.StreamReader($jsonEntry.Open())
+            $dllEntries = @($archive.Entries | Where-Object { $_.Name -like '*.dll' })
+            if ($dllEntries.Count -eq 0) {
+              throw 'No plugin .dll found inside latest.zip'
+            }
+            $dllEntry = $dllEntries | Where-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) -eq $assemblyName } | Select-Object -First 1
+            if (-not $dllEntry) {
+              $dllEntry = $dllEntries | Select-Object -First 1
+            }
+            $manifestName = [System.IO.Path]::ChangeExtension($dllEntry.Name, '.json')
+            $manifestEntry = $archive.Entries | Where-Object { $_.Name -eq $manifestName }
+            if (-not $manifestEntry) {
+              throw "Manifest $manifestName not found inside latest.zip"
+            }
+            $reader = New-Object System.IO.StreamReader($manifestEntry.Open())
             try { $manifest = $reader.ReadToEnd() | ConvertFrom-Json }
             finally { $reader.Close() }
           } finally { $archive.Dispose() }
 
           $assemblyVersion = [string]$manifest.AssemblyVersion
+          if ([string]::IsNullOrWhiteSpace($assemblyVersion)) {
+            throw 'AssemblyVersion missing from plugin manifest'
+          }
           $asset = Join-Path $env:RUNNER_TEMP 'latest.zip'
           Copy-Item -LiteralPath $built.FullName -Destination $asset -Force
 
