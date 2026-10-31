@@ -50,6 +50,16 @@ Screenshots are mock-ups illustrating the UI, not captures from the live game.
 
 Regenerate PNGs from the HTML sources: `cd docs/screenshots && npm install && npx playwright install chromium && node render.mjs`.
 
+### Mock-up video
+
+These are the same HTML mock-ups animated for a quick tour — **not** captures from the live game.
+
+![Mock-up walkthrough preview](docs/videos/mockup-walkthrough.gif)
+
+[Full walkthrough (MP4)](docs/videos/mockup-walkthrough.mp4)
+
+Regenerate: `cd docs/videos && npm install && npx playwright install chromium && npm run render` (requires `ffmpeg`).
+
 ### Feature coverage
 
 | Feature | Screenshot |
