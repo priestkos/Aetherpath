@@ -48,8 +48,6 @@ Screenshots are mock-ups illustrating the UI, not captures from the live game.
 | ![Settings — travel slots](docs/screenshots/04-settings-travel-slots.png) | **Settings — slots & travel options** — `/aetherpath cfg`: auto-read, manual overrides, which travel modes to price, ticket count. |
 | ![Display options and manual override](docs/screenshots/05-settings-display-override.png) | **Display options & override banner** — display toggles, **Routes shown** slider (default 8), manual-override projection warning, partial **first leg only** routes. |
 
-Regenerate PNGs from the HTML sources: `cd docs/screenshots && npm install && npx playwright install chromium && node render.mjs`.
-
 ### Mock-up video
 
 These are the same HTML mock-ups animated for a quick tour — **not** captures from the live game.
@@ -57,8 +55,6 @@ These are the same HTML mock-ups animated for a quick tour — **not** captures 
 ![Mock-up walkthrough preview](docs/videos/mockup-walkthrough.gif)
 
 [Full walkthrough (MP4)](docs/videos/mockup-walkthrough.mp4)
-
-Regenerate: `cd docs/videos && npm install && npx playwright install chromium && npm run render` (requires `ffmpeg`).
 
 ### Feature coverage
 
