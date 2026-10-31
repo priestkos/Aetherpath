@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Aetherpath mock — settings travel slots</title>
+  <link rel="stylesheet" href="imgui-mock.css" />
+</head>
+<body>
+  <div class="game-backdrop"></div>
+  <div class="window w520">
+    <div class="titlebar">Aetherpath settings</div>
+    <div class="content">
+      <div class="collapse-header">▼ My travel slots</div>
+      <div class="collapse-body">
+        <p style="line-height:1.45;margin-bottom:8px">
+          Aetherpath reads your free transfer and favored destinations from the game. Type values here to override them and price what-if setups - nothing here is written back to the game.
+        </p>
+        <span class="fake-check checked">Read slots from the game</span>
+        <div style="height:10px"></div>
+        <div>Override: free destination <span class="muted">(aetheryte id, 0 = none)</span></div>
+        <span class="int-field" style="margin-top:4px">0</span>
+        <div style="height:8px"></div>
+        <div>Override: home point (Return)</div>
+        <span class="int-field" style="margin-top:4px">8</span>
+        <div style="height:8px"></div>
+        <div>Override: favored destinations (ids) <span class="muted">(4th slot needs the Companion app unlock)</span></div>
+        <div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="int-field">133</span>
+          <span class="int-field">84</span>
+          <span class="int-field">0</span>
+          <span class="int-field">0</span>
+        </div>
+      </div>
+
+      <div class="collapse-header">▼ Travel options to price</div>
+      <div class="collapse-body">
+        <div style="display:grid;gap:6px">
+          <span class="fake-check checked">Plain teleport</span>
+          <span class="fake-check checked">Free destination</span>
+          <span class="fake-check checked">Favored slots</span>
+          <span class="fake-check checked">Return to home point</span>
+          <span class="fake-check checked">Aetheryte tickets</span>
+          <span class="fake-check checked">Estate / apartment teleports</span>
+          <span class="fake-check checked">Teleport to a neighbour, then walk in</span>
+        </div>
+        <div style="height:10px"></div>
+        <div>Aetheryte tickets in your bags <span class="muted">(manual - Aetherpath does not read your inventory)</span></div>
+        <span class="int-field" style="margin-top:4px">2</span>
+      </div>
+
+      <hr class="sep" />
+      <p class="muted" style="line-height:1.45;font-size:12px">
+        Read-only by design: Aetherpath never teleports, never spends a ticket and never writes to game memory. It reads the teleport window the game already built for you.
+      </p>
+      <p class="muted" style="font-size:12px;margin-top:6px">Config v1 · live teleport entries: 42</p>
+    </div>
+  </div>
+</body>
+</html>

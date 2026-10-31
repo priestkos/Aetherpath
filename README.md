@@ -36,6 +36,64 @@ Home, free and favored ids prefer `IPlayerState` (`HomeAetheryte`, `FreeAetheryt
 | `/aetherpath cfg` | Settings (`config` and `settings` also accepted). |
 | `/ap` | Alias for `/aetherpath`; arguments work the same. |
 
+## Screenshots
+
+Screenshots are mock-ups illustrating the UI, not captures from the live game.
+
+| | |
+| --- | --- |
+| ![Main window — route comparison](docs/screenshots/01-main-route-comparison.png) | **Route comparison** — ranked routes (direct, free, favored, ticket, Return, estate, walk-in) with gil, savings, and **BEST USE OF YOUR SLOTS**. Open with `/aetherpath` or `/ap`. |
+| ![Destination picker](docs/screenshots/02-main-destination-picker.png) | **Destination picker** — search, **Zones** toggle, **Clear**, zone walk-ins, aetheryte costs, and empty-state help text. |
+| ![Diagnostics and slot value](docs/screenshots/03-main-diagnostics-slot-value.png) | **Diagnostics & slot value** — `/aetherpath cfg` hint when free transfer is missing, **Show diagnostics counters**, and **What your slots are worth right now** table. |
+| ![Settings — travel slots](docs/screenshots/04-settings-travel-slots.png) | **Settings — slots & travel options** — `/aetherpath cfg`: auto-read, manual overrides, which travel modes to price, ticket count. |
+| ![Display options and manual override](docs/screenshots/05-settings-display-override.png) | **Display options & override banner** — display toggles, **Routes shown** slider (default 8), manual-override projection warning, partial **first leg only** routes. |
+
+Regenerate PNGs from the HTML sources: `cd docs/screenshots && npm install && npx playwright install chromium && node render.mjs`.
+
+### Mock-up video
+
+These are the same HTML mock-ups animated for a quick tour — **not** captures from the live game.
+
+![Mock-up walkthrough preview](docs/videos/mockup-walkthrough.gif)
+
+[Full walkthrough (MP4)](docs/videos/mockup-walkthrough.mp4)
+
+Regenerate: `cd docs/videos && npm install && npx playwright install chromium && npm run render` (requires `ffmpeg`).
+
+### Feature coverage
+
+| Feature | Screenshot |
+| --- | --- |
+| Slash command `/aetherpath` (main window) | 01, 02, 05 |
+| Slash command `/ap` (alias) | 05 |
+| Slash command `/aetherpath cfg` / `config` / `settings` | 03, 04, 05 |
+| Dalamud **Open Main UI** / **Open Config UI** (same windows) | 01–05 |
+| Header: current zone, free transfer, favored list | 01, 02, 03, 05 |
+| No live teleport data message (logged out / unattuned) | *(not pictured — replaces main table when `HasLiveData` is false)* |
+| No free destination hint | 03 |
+| Manual override active banner | 05 |
+| Destination search | 02 |
+| **Zones** checkbox & zone list (incl. walk-in) | 02 |
+| **Clear** selection | 02 |
+| Aetheryte list with live/projected cost tags | 02 |
+| Route table: Route, Gil, Saves, What it needs | 01, 05 |
+| Cheapest route marker (★ cheapest) | 01 |
+| Travel modes: direct, free, favored, ticket, Return, estate, walk-in | 01 |
+| Partial route (**first leg only**) | 05 |
+| **BEST USE OF YOUR SLOTS** advice | 01, 02, 03 |
+| **What your slots are worth right now** (diagnostics tree) | 03 |
+| Footer read-only disclaimer | 01–05 |
+| Diagnostics counters (live / exact / projected / unpriced) | 03 |
+| Settings: **Read slots from the game** | 04 |
+| Settings: override free / home / favored ids | 04 |
+| Settings: travel option checkboxes (7 modes) | 04 |
+| Settings: **Aetheryte tickets in your bags** | 04 |
+| Settings: **Show diagnostics counters** | 05 |
+| Settings: **Hide routes costing 1000 gil or more** | 05 |
+| Settings: **Include walk-in zones (no local aetheryte)** | 05 |
+| Settings: **Compact number formatting** (default on) | 05 |
+| Settings: **Routes shown** slider (3–20, default 8) | 05 |
+
 ## Settings
 
 - **My travel slots** — auto-read, or override the free destination, home point and four favored slots by aetheryte id, index-preserving (0 = none); nothing is written back.

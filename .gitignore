@@ -3,3 +3,5 @@ obj/
 .vs/
 .idea/
 *.user
+docs/screenshots/node_modules/
+docs/videos/node_modules/
