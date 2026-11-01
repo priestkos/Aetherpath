@@ -109,6 +109,8 @@ dotnet build -c Release    # zip in bin/Release/Aetherpath/latest.zip
 
 The manifest comes from the MSBuild properties in `Aetherpath.csproj` — never hand-edit it.
 
+Pushes to `main` that change the plugin (not docs-only paths) cut a GitHub release automatically; the version is the next four-part number above the latest release tag (or the csproj version when that is higher). Tag pushes `v*` still work for manual releases.
+
 ## Install (dev plugin)
 
 1. `/xlsettings` → Experimental → Dev Plugin Locations → add the full path to `bin\Debug\Aetherpath.dll`.
