@@ -135,24 +135,21 @@ public sealed class CostModel
         // Touching IAetheryteList first forces the game to rebuild Telepo.TeleportList for the
         // current territory; read the struct afterwards, never before.
         var length = Plugin.AetheryteList.Length;
-        if (length <= 0 || !Plugin.PlayerState.IsLoaded)
-        {
-            this.HasLiveData = false;
-            this.Entries.Clear();
-            this.byKey.Clear();
-            this.byAetheryteId.Clear();
-            return;
-        }
-
-        var freeIds = ReadFreeDestinationFlags();
-        var freeIdFromPlayer = ReadPlayerFreeAetheryteId();
-
         this.Entries.Clear();
         this.byKey.Clear();
         this.byAetheryteId.Clear();
         this.ExactCount = 0;
         this.EstimatedCount = 0;
         this.UnknownCount = 0;
+
+        if (length <= 0 || !Plugin.PlayerState.IsLoaded)
+        {
+            this.HasLiveData = false;
+            return;
+        }
+
+        var freeIds = ReadFreeDestinationFlags();
+        var freeIdFromPlayer = ReadPlayerFreeAetheryteId();
 
         foreach (IAetheryteEntry source in Plugin.AetheryteList)
         {
