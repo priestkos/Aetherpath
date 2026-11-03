@@ -166,5 +166,33 @@ void Ok(string message) => Console.WriteLine($"ok: {message}");
         Ok("WalkInCandidateIds uses PlaceNameZone, skips region peers / shards / invisible");
 }
 
+// ---- Configuration list defaults are replaced, not appended, on load --------
+// Source check because Configuration.cs needs Dalamud (and Newtonsoft), which this harness avoids.
+{
+    var dir = new DirectoryInfo(AppContext.BaseDirectory);
+    while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Configuration.cs")))
+        dir = dir.Parent;
+
+    if (dir == null)
+    {
+        Fail("Configuration.cs not found above the harness output");
+    }
+    else
+    {
+        var lines = File.ReadAllLines(Path.Combine(dir.FullName, "Configuration.cs"));
+        var unguarded = lines
+            .Select((line, i) => (line, i))
+            .Where(x => x.line.Contains("public List<") && x.line.Contains("= new")
+                        && (x.i == 0 || !lines[x.i - 1].Contains("ObjectCreationHandling.Replace")))
+            .Select(x => x.line.Trim())
+            .ToList();
+
+        if (unguarded.Count > 0)
+            Fail($"list with defaults lacks ObjectCreationHandling.Replace (grows on every load): {string.Join(" | ", unguarded)}");
+        else
+            Ok("Configuration list defaults use ObjectCreationHandling.Replace");
+    }
+}
+
 Console.WriteLine(failures == 0 ? "ALL CHECKS PASSED" : $"{failures} CHECK(S) FAILED");
 return failures == 0 ? 0 : 1;
