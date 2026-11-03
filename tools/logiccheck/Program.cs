@@ -92,7 +92,8 @@ void Ok(string message) => Console.WriteLine($"ok: {message}");
         baseCost: 1000,
         isLive: false,
         isFree: false,
-        isFavored: true);
+        isFavored: true,
+        baseIsExact: true);
 
     if (cost != 500 || exact || baseline != 1000)
         Fail($"projected favored: cost={cost} exact={exact} baseline={baseline}");
@@ -106,12 +107,45 @@ void Ok(string message) => Console.WriteLine($"ok: {message}");
         baseCost: 500,
         isLive: true,
         isFree: false,
-        isFavored: true);
+        isFavored: true,
+        baseIsExact: false);
 
     if (cost != 250 || !exact)
         Fail($"live favored should keep exact live cost: cost={cost} exact={exact}");
     else
         Ok("PriceFor keeps live costs exact");
+}
+
+// ---- PriceFor: live-free entry (no base) moved off the free slot is not 0 ---
+{
+    var (cost, exact, baseline) = SlotLogic.PriceFor(
+        liveCost: 0,
+        baseCost: null,
+        isLive: false,
+        isFree: false,
+        isFavored: false,
+        baseIsExact: false);
+
+    if (cost == 0 || exact || baseline != null)
+        Fail($"unpriced override entry ranked as free: cost={cost} exact={exact} baseline={baseline}");
+    else
+        Ok("PriceFor estimates (not 0) an old free destination in override mode");
+}
+
+// ---- PriceFor: estimated base (favored-derived) is not exact in override ----
+{
+    var (cost, exact, _) = SlotLogic.PriceFor(
+        liveCost: 400,
+        baseCost: 800,
+        isLive: false,
+        isFree: false,
+        isFavored: false,
+        baseIsExact: false);
+
+    if (cost != 800 || exact)
+        Fail($"estimated base reported exact: cost={cost} exact={exact}");
+    else
+        Ok("PriceFor keeps an estimated base inexact");
 }
 
 // ---- Walk-in candidates use zone name, not region --------------------------

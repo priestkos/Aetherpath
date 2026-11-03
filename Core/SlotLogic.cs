@@ -105,7 +105,8 @@ public static class SlotLogic
         long? baseCost,
         bool isLive,
         bool isFree,
-        bool isFavored)
+        bool isFavored,
+        bool baseIsExact)
     {
         if (isLive)
             return (liveCost, baseCost != null || liveCost == 0, baseCost);
@@ -114,14 +115,19 @@ public static class SlotLogic
         if (isFree)
             return (0, true, baseline);
 
+        // No base means the game reports this as its free destination (live 0); off that slot the
+        // fee is unknown, so estimate the fee cap rather than ranking it as free.
         if (baseline == null)
-            return (liveCost, false, null);
+            return (UnknownCostEstimate, false, null);
 
         if (isFavored)
             return ((uint)(baseline.Value / 2), false, baseline);
 
-        return ((uint)baseline.Value, true, baseline);
+        return ((uint)baseline.Value, baseIsExact, baseline);
     }
+
+    /// <summary>Upper-bound estimate for an unpriced destination: the 999 gil teleport fee cap (see CostModel.InvertBase).</summary>
+    public const uint UnknownCostEstimate = 999;
 
     /// <summary>
     /// Aetheryte ids that count as walk/aethernet neighbours of a territory, using zone name

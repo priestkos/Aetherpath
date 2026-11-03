@@ -178,7 +178,7 @@ public sealed class RoutePlanner
                 ? "already favored"
                 : slots.FreeFavoredSlots > 0
                     ? $"spend one of your {slots.FreeFavoredSlots} open favored slot(s)"
-                    : "replace one of your three favored destinations",
+                    : "replace one of your favored destinations",
         };
 
         option.Steps.Add($"Register {target.Label} as a favored destination, then teleport: {projected:N0} gil.");
@@ -194,7 +194,7 @@ public sealed class RoutePlanner
                 .Select(e => $"{e!.Label} ({(e.BaseCost ?? e.LiveCost):N0} gil full price)")
                 .ToList();
             if (holders.Count > 0)
-                option.Note = $"All {SlotState.FavoredSlotCount} slots are taken by {string.Join(", ", holders)}.";
+                option.Note = $"Your favored slots are taken by {string.Join(", ", holders)}.";
         }
         else
         {
@@ -364,7 +364,8 @@ public sealed class RoutePlanner
             entry.BaseCost,
             slots.IsLive,
             slots.IsFree(entry.AetheryteId),
-            slots.IsFavored(entry.AetheryteId));
+            slots.IsFavored(entry.AetheryteId),
+            entry.BaseIsExact);
     }
 }
 
@@ -462,7 +463,7 @@ public static class SlotOptimizer
             {
                 advice.Lines.Add(slots.FreeFavoredSlots > 0
                     ? $"Favoring {target.Label} costs {favoredCost:N0} gil (saves {baseCost - favoredCost:N0}) and you have {slots.FreeFavoredSlots} open slot(s)."
-                    : $"Favoring {target.Label} would cost {favoredCost:N0} gil (saves {baseCost - favoredCost:N0}) but all three slots are taken.");
+                    : $"Favoring {target.Label} would cost {favoredCost:N0} gil (saves {baseCost - favoredCost:N0}) but your favored slots are taken.");
             }
 
             var betterFree = advice.BestFreeHolders.FirstOrDefault();
