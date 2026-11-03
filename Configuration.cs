@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using Dalamud.Configuration;
 
+using Newtonsoft.Json;
+
 namespace Aetherpath;
 
 /// <summary>
@@ -23,6 +25,7 @@ public class Configuration : IPluginConfiguration
     public uint OverrideFreeDestination { get; set; }
 
     /// <summary>Manual override: favored destinations (0 = empty). Four slots once the Companion app unlock is on your account.</summary>
+    [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)] // else saved values append to the defaults on load
     public List<uint> OverrideFavored { get; set; } = new() { 0, 0, 0, 0 };
 
     /// <summary>Manual override: home point for the Return leg (0 = none / unknown).</summary>
