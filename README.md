@@ -23,6 +23,7 @@ Home, free and favored ids prefer `IPlayerState` (`HomeAetheryte`, `FreeAetheryt
 | Full price, un-discounted destination | Same number | Exact |
 | Full price, currently favored | Live × 2 (favored bills 50%; the fee cap applies before discounts) | ±1 gil, projected |
 | Full price, currently free | Not recoverable — the game reports 0 | Unpriced, never invented |
+| Same destination, moved off the free slot in an override | Fee cap (999) as an upper bound | `~` estimate, never shown as free |
 | Favored price, not favored | Full ÷ 2 | ±1 gil, projected |
 
 - The ">1000 gil growth is halved" step is in the base distance curve, not the discount, so it is already inside the live numbers.
