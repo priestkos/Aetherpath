@@ -6,6 +6,8 @@ Prices every way to get where you're going in FFXIV, and shows where your free t
 
 `/aetherpath` · Dalamud API 15 · .NET 10
 
+> **No support will be provided. This software is to be used as is, without warranty of any kind.**
+
 ## What it does
 
 - **Read-only** — no teleports, no ticket spending, no changes to your free/favored settings, no writes to game memory. It reads the teleport window the game already built and does the maths.
