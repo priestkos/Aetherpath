@@ -55,7 +55,7 @@ Screenshots are mock-ups illustrating the UI, not captures from the live game.
 
 ### Mock-up video
 
-These are the same HTML mock-ups animated for a quick tour — **not** captures from the live game.
+These are the same HTML mock-ups animated for a quick tour (~15 seconds) — **not** captures from the live game.
 
 ![Mock-up walkthrough preview](docs/videos/mockup-walkthrough.gif)
 
