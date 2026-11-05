@@ -11,7 +11,7 @@ const pages = [
   { html: "02-main-destination-picker.html", png: "02-main-destination-picker.png" },
   { html: "03-main-diagnostics-slot-value.html", png: "03-main-diagnostics-slot-value.png" },
   { html: "04-settings-travel-slots.html", png: "04-settings-travel-slots.png" },
-  { html: "05-settings-display-override.html", png: "05-settings-display-override.png", fullViewport: true },
+  { html: "05-settings-display-override.html", png: "05-settings-display-override.png" },
 ];
 
 const browser = await chromium.launch();
@@ -22,11 +22,7 @@ for (const p of pages) {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("file://" + path.join(src, p.html), { waitUntil: "networkidle" });
 
-  if (p.fullViewport) {
-    await page.screenshot({ path: path.join(dir, p.png), type: "png" });
-  } else {
-    await page.locator(".window").first().screenshot({ path: path.join(dir, p.png), type: "png" });
-  }
+  await page.screenshot({ path: path.join(dir, p.png), type: "png" });
   await page.close();
 }
 

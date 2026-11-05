@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Aetherpath mock-up walkthrough</title>
+  <link rel="stylesheet" href="../../screenshots/src/imgui-mock.css" />
+  <style>
+    body { align-items: center; justify-content: center; }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity, transform;
+    }
+
+    .scene-inner { position: relative; z-index: 2; }
+
+    .intro-card {
+      text-align: center;
+      max-width: 920px;
+      padding: 48px 56px;
+      background: rgba(30, 31, 38, 0.92);
+      border: 1px solid #3a3b45;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    }
+    .intro-card h1 { font-size: 28px; font-weight: 600; margin-bottom: 16px; }
+    .intro-card .warn { font-size: 20px; color: #fad872; margin: 16px 0 12px; }
+    .intro-card .sub { font-size: 15px; color: #a6a6b3; line-height: 1.5; }
+
+    .split-row { display: flex; gap: 16px; align-items: flex-start; transform: scale(0.82); transform-origin: center center; }
+
+    .video-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 9000;
+      padding: 16px 24px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.45) 75%, transparent 100%);
+      text-shadow: 0 1px 4px #000;
+    }
+    .video-caption strong { color: #8cd1ff; }
+
+    #demo-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 28px;
+      z-index: 10001;
+      margin: -2px 0 0 -2px;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+      transform-origin: 2px 2px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .row-highlight { background: rgba(140, 209, 255, 0.12) !important; }
+    .pick-highlight { background: rgba(250, 216, 114, 0.18) !important; color: #fad872 !important; }
+  </style>
+</head>
+<body>
+  <div class="game-backdrop"></div>
+  <div class="mockup-banner">Mock-up</div>
+
+  <div id="scene0" class="scene">
+    <div class="scene-inner intro-card">
+      <h1><span class="accent">AETHER</span><span class="gold">PATH</span> UI walkthrough</h1>
+      <p class="warn">Mock-ups only — not captures from the live game.</p>
+      <p class="sub">Destination picker, route table, slot advice, and settings — read-only teleport maths.</p>
+    </div>
+  </div>
+
+  <div id="scene1" class="scene">
+    <div class="scene-inner window w860">
+      <div class="titlebar">Aetherpath</div>
+      <div class="content">
+        <div class="header-line">
+          <span class="accent">AETHER</span><span class="gold">PATH</span>
+          <span class="muted"> | you are in Gridania</span>
+          <span class="muted"> | free transfer: </span><span class="good">New Gridania Aetheryte</span>
+        </div>
+        <div class="header-line">
+          <span class="muted">favored: </span><span class="accent" style="opacity:0.85">Old Gridania Aetheryte · Camp Tranquil Aetheryte</span>
+        </div>
+        <hr class="sep" />
+        <div class="layout-2col">
+          <div class="col">
+            <div class="fake-input" style="margin-bottom:8px;color:#888">Search aetheryte or zone...</div>
+            <div class="row-tools"><span class="fake-check checked">Zones</span><span class="btn-sm">Clear</span></div>
+            <div class="scroll-panel">
+              <div class="selectable selected"><span>Revenant's Toll Aetheryte</span><span class="tag">840g</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div><span class="accent">Revenant's Toll Aetheryte</span> <span class="muted">8 priced option(s)</span></div>
+            <div style="height:8px"></div>
+            <table class="data">
+              <thead><tr><th>Route</th><th>Gil</th><th>Saves</th><th>What it needs</th></tr></thead>
+              <tbody>
+                <tr id="s1-best" class="row-highlight">
+                  <td><span class="good">Favored slot  ★ cheapest</span></td>
+                  <td class="gold">420</td>
+                  <td class="good">-420</td>
+                  <td>assign a favored slot here</td>
+                </tr>
+                <tr><td>Direct teleport</td><td class="gold">840</td><td class="muted">baseline</td><td>no slots needed</td></tr>
+                <tr><td>Free destination</td><td class="good">0 (free)</td><td class="good">-840</td><td>move your OTP free transfer here</td></tr>
+              </tbody>
+            </table>
+            <div style="height:8px"></div>
+            <div class="accent" style="font-size:12px">BEST USE OF YOUR SLOTS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scene2" class="scene">
+    <div class="scene-inner window w860">
+      <div class="titlebar">Aetherpath</div>
+      <div class="content">
+        <div class="header-line">
+          <span class="accent">AETHER</span><span class="gold">PATH</span>
+          <span class="muted"> | you are in Limsa Lominsa Lower Decks</span>
+        </div>
+        <hr class="sep" />
+        <div class="layout-2col">
+          <div class="col">
+            <div class="fake-input" style="margin-bottom:8px">limsa</div>
+            <div class="row-tools"><span class="fake-check checked" id="s2-zones">Zones</span><span class="btn-sm">Clear</span></div>
+            <div class="scroll-panel">
+              <div class="section-label">ZONES</div>
+              <div class="selectable muted"><span>Eastern La Noscea (walk-in)</span><span class="muted tag">walk-in</span></div>
+              <div class="section-label">AETHERYTES</div>
+              <div class="selectable" id="s2-pick"><span>Costa del Sol Aetheryte  [fav]</span><span class="tag">180g</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="accent">Pick a destination on the left.</div>
+            <p class="muted" style="margin-top:8px;line-height:1.45">Search, zone walk-ins, and live or projected aetheryte costs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scene3" class="scene">
+    <div class="scene-inner window w860">
+      <div class="titlebar">Aetherpath</div>
+      <div class="content">
+        <div class="header-line">
+          <span class="accent">AETHER</span><span class="gold">PATH</span>
+          <span class="muted"> | free transfer: </span><span class="bad">not set</span>
+        </div>
+        <p class="muted" style="font-size:12px;margin:6px 0">No free destination detected — set its aetheryte id in <span class="accent" style="opacity:0.85">/aetherpath cfg</span>.</p>
+        <hr class="sep" />
+        <div class="tree-node">What your slots are worth right now</div>
+        <table class="data" style="margin-top:6px">
+          <thead><tr><th>Destination</th><th>Full price</th><th>Favored</th></tr></thead>
+          <tbody>
+            <tr><td>Revenant's Toll Aetheryte</td><td class="gold">920</td><td class="muted">460</td></tr>
+            <tr><td>Camp Dragonhead Aetheryte  [fav]</td><td class="gold">780</td><td class="muted">390</td></tr>
+          </tbody>
+        </table>
+        <div class="footer" style="margin-top:10px">live entries: 42, exact: 38, projected: 3, unpriced: 1</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scene4" class="scene">
+    <div class="scene-inner window w520">
+      <div class="titlebar">Aetherpath settings</div>
+      <div class="content">
+        <div class="collapse-header">▼ My travel slots</div>
+        <div class="collapse-body">
+          <span class="fake-check checked">Read slots from the game</span>
+        </div>
+        <div class="collapse-header">▼ Travel options to price</div>
+        <div class="collapse-body">
+          <span class="fake-check checked">Plain teleport</span>
+          <span class="fake-check checked">Aetheryte tickets</span>
+          <div style="height:8px"></div>
+          <div>Aetheryte tickets in your bags</div>
+          <span class="int-field" id="s4-tickets" style="margin-top:4px">2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scene5" class="scene">
+    <div class="scene-inner split-row">
+      <div class="window w520">
+        <div class="titlebar">Aetherpath settings</div>
+        <div class="content">
+          <div class="collapse-header">▼ Display</div>
+          <div class="collapse-body">
+            <span class="fake-check checked">Show diagnostics counters</span>
+            <div style="height:8px"></div>
+            <div>Routes shown</div>
+            <div class="slider-row">
+              <div class="slider-track"><div class="slider-fill" id="s5-fill" style="width:29%"></div></div>
+              <span class="muted" id="s5-max">8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="window w860" style="max-width:480px">
+        <div class="titlebar">Aetherpath</div>
+        <div class="content">
+          <div class="header-line">
+            <span class="gold">[manual override active - prices are projections from here]</span>
+          </div>
+          <table class="data">
+            <thead><tr><th>Route</th><th>Gil</th><th>Saves</th><th>What it needs</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Return (home point)</td>
+                <td class="good">0 (free)</td>
+                <td class="good">-640</td>
+                <td>Return recast (15 min)<br><span class="muted">first leg only</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scene6" class="scene">
+    <div class="scene-inner intro-card">
+      <h1><span class="accent">Read-only</span> by design</h1>
+      <p class="warn">No teleports · no ticket spending · no game memory writes</p>
+      <p class="sub"><span class="accent" style="opacity:0.85">/aetherpath</span> · <span class="accent" style="opacity:0.85">/ap</span> · <span class="accent" style="opacity:0.85">/aetherpath cfg</span></p>
+    </div>
+  </div>
+
+  <div id="demo-cursor" aria-hidden="true">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M3 2L3 22L9 16L13 24L16 22L12 14L20 14L3 2Z" fill="#fff" stroke="#1a1a22" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="video-caption" id="caption"><strong>Aetherpath</strong> — mock-up walkthrough</div>
+
+  <script>
+    const scenes = [
+      { id: "scene0", start: 0, end: 2.1, title: "Aetherpath", subtitle: "mock-up UI walkthrough" },
+      { id: "scene1", start: 1.7, end: 4.3, title: "Route comparison", subtitle: "ranked routes & BEST USE OF YOUR SLOTS" },
+      { id: "scene2", start: 3.9, end: 6.5, title: "Destination picker", subtitle: "search, Zones, walk-ins & costs" },
+      { id: "scene3", start: 6.1, end: 8.7, title: "Diagnostics & slot value", subtitle: "free-transfer hint & worth table" },
+      { id: "scene4", start: 8.3, end: 10.9, title: "Settings — travel slots", subtitle: "overrides & travel modes to price" },
+      { id: "scene5", start: 10.5, end: 13.1, title: "Display & override banner", subtitle: "/ap alias · manual override · first leg only" },
+      { id: "scene6", start: 12.7, end: 15.0, title: "Read-only by design", subtitle: "see README for real usage" },
+    ];
+
+    function easeOutCubic(x) {
+      return 1 - Math.pow(1 - x, 3);
+    }
+
+    function sceneMotion(t, start, end) {
+      const fade = 0.38;
+      let opacity = 0;
+      let ty = 10;
+      if (t < start) {
+        opacity = 0;
+        ty = 10;
+      } else if (t > end) {
+        opacity = 0;
+        ty = -6;
+      } else if (t < start + fade) {
+        const p = (t - start) / fade;
+        const e = easeOutCubic(p);
+        opacity = e;
+        ty = 10 * (1 - e);
+      } else if (t > end - fade) {
+        const p = (end - t) / fade;
+        const e = easeOutCubic(p);
+        opacity = e;
+        ty = -6 * (1 - e);
+      } else {
+        opacity = 1;
+        ty = 0;
+      }
+      return { opacity, ty };
+    }
+
+    function lerp(a, b, p) {
+      return a + (b - a) * p;
+    }
+
+    function setCursor(x, y, visible, pressed) {
+      const el = document.getElementById("demo-cursor");
+      const scale = pressed ? 0.92 : 1;
+      el.style.opacity = visible ? "1" : "0";
+      el.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+
+    window.seekWalkthrough = function (t) {
+      for (const s of scenes) {
+        const el = document.getElementById(s.id);
+        const { opacity, ty } = sceneMotion(t, s.start, s.end);
+        el.style.opacity = String(opacity);
+        el.style.transform = `translateY(${ty}px)`;
+      }
+
+      let capTitle = "Aetherpath";
+      let capSub = "mock-up walkthrough";
+      for (const s of scenes) {
+        if (t >= s.start && t <= s.end) {
+          capTitle = s.title;
+          capSub = s.subtitle;
+        }
+      }
+      document.getElementById("caption").innerHTML =
+        `<strong>${capTitle}</strong> — ${capSub}`;
+
+      const s2 = sceneMotion(t, scenes[2].start, scenes[2].end);
+      const pick = document.getElementById("s2-pick");
+      if (s2.opacity > 0.2 && t >= 5.1) pick.classList.add("pick-highlight");
+      else pick.classList.remove("pick-highlight");
+
+      const s4 = sceneMotion(t, scenes[4].start, scenes[4].end);
+      const tickets = document.getElementById("s4-tickets");
+      if (s4.opacity > 0.2 && t >= 9.6) tickets.textContent = "3";
+      else tickets.textContent = "2";
+
+      const s5 = sceneMotion(t, scenes[5].start, scenes[5].end);
+      const fill = document.getElementById("s5-fill");
+      const maxEl = document.getElementById("s5-max");
+      if (s5.opacity > 0.2 && t >= 11.6) {
+        fill.style.width = "47%";
+        maxEl.textContent = "12";
+      } else {
+        fill.style.width = "29%";
+        maxEl.textContent = "8";
+      }
+
+      let cx = 640;
+      let cy = 400;
+      let showCursor = false;
+      let pressed = false;
+
+      if (t >= 2.2 && t < 4.0) {
+        showCursor = true;
+        const p = Math.min(1, (t - 2.2) / 0.55);
+        cx = lerp(900, 780, easeOutCubic(p));
+        cy = lerp(420, 318, easeOutCubic(p));
+        pressed = t >= 2.65 && t < 2.85;
+      } else if (t >= 4.4 && t < 6.2) {
+        showCursor = true;
+        const p = Math.min(1, (t - 4.4) / 0.5);
+        cx = lerp(520, 380, easeOutCubic(p));
+        cy = lerp(360, 430, easeOutCubic(p));
+        pressed = t >= 5.0 && t < 5.2;
+      } else if (t >= 8.8 && t < 10.5) {
+        showCursor = true;
+        cx = lerp(620, 720, (t - 8.8) / 0.6);
+        cy = 520;
+        pressed = t >= 9.5 && t < 9.75;
+      } else if (t >= 11.0 && t < 12.5) {
+        showCursor = true;
+        cx = lerp(480, 620, (t - 11.0) / 0.45);
+        cy = 480;
+        pressed = t >= 11.55 && t < 11.8;
+      }
+
+      setCursor(cx, cy, showCursor, pressed);
+    };
+
+    seekWalkthrough(0);
+  </script>
+</body>
+</html>
