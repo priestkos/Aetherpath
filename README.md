@@ -47,7 +47,7 @@ Screenshots are mock-ups illustrating the UI, not captures from the live game.
 
 | | |
 | --- | --- |
-| ![Main window — route comparison](docs/screenshots/01-main-route-comparison.png) | **Route comparison** — ranked routes (direct, free, favored, ticket, Return, estate, walk-in) with gil, savings, and **BEST USE OF YOUR SLOTS**. Open with `/aetherpath` or `/ap`. |
+| ![Main window — route comparison](docs/screenshots/01-main-route-comparison.png) | **Route comparison** — ranked routes (free, ticket, favored, walk-in, direct, Return) with gil, savings, and **BEST USE OF YOUR SLOTS**. Open with `/aetherpath` or `/ap`. |
 | ![Destination picker](docs/screenshots/02-main-destination-picker.png) | **Destination picker** — search, **Zones** toggle, **Clear**, zone walk-ins, aetheryte costs, and empty-state help text. |
 | ![Diagnostics and slot value](docs/screenshots/03-main-diagnostics-slot-value.png) | **Diagnostics & slot value** — `/aetherpath cfg` hint when free transfer is missing, **Show diagnostics counters**, and **What your slots are worth right now** table. |
 | ![Settings — travel slots](docs/screenshots/04-settings-travel-slots.png) | **Settings — slots & travel options** — `/aetherpath cfg`: auto-read, manual overrides, which travel modes to price, ticket count. |

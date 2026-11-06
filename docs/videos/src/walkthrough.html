@@ -103,19 +103,19 @@
             </div>
           </div>
           <div class="col">
-            <div><span class="accent">Revenant's Toll Aetheryte</span> <span class="muted">8 priced option(s)</span></div>
+            <div><span class="accent">Revenant's Toll Aetheryte</span> <span class="muted">6 priced option(s)</span></div>
             <div style="height:8px"></div>
             <table class="data">
               <thead><tr><th>Route</th><th>Gil</th><th>Saves</th><th>What it needs</th></tr></thead>
               <tbody>
                 <tr id="s1-best" class="row-highlight">
-                  <td><span class="good">Favored slot  ★ cheapest</span></td>
-                  <td class="gold">420</td>
-                  <td class="good">-420</td>
-                  <td>assign a favored slot here</td>
+                  <td><span class="good">Free destination  ★ cheapest</span></td>
+                  <td class="good">0 (free)</td>
+                  <td class="good">-840</td>
+                  <td>move your OTP free transfer here</td>
                 </tr>
+                <tr><td>Favored slot</td><td class="gold">420 <span class="muted">~</span></td><td class="good">-420</td><td>spend one of your 2 open favored slot(s)</td></tr>
                 <tr><td>Direct teleport</td><td class="gold">840</td><td class="muted">baseline</td><td>no slots needed</td></tr>
-                <tr><td>Free destination</td><td class="good">0 (free)</td><td class="good">-840</td><td>move your OTP free transfer here</td></tr>
               </tbody>
             </table>
             <div style="height:8px"></div>
@@ -137,18 +137,18 @@
         <hr class="sep" />
         <div class="layout-2col">
           <div class="col">
-            <div class="fake-input" style="margin-bottom:8px">limsa</div>
+            <div class="fake-input" style="margin-bottom:8px;color:#888">Search aetheryte or zone...</div>
             <div class="row-tools"><span class="fake-check checked" id="s2-zones">Zones</span><span class="btn-sm">Clear</span></div>
             <div class="scroll-panel">
               <div class="section-label">ZONES</div>
-              <div class="selectable muted"><span>Eastern La Noscea (walk-in)</span><span class="muted tag">walk-in</span></div>
+              <div class="selectable muted"><span>Eastern La Noscea</span><span class="muted tag">walk-in</span></div>
               <div class="section-label">AETHERYTES</div>
-              <div class="selectable" id="s2-pick"><span>Costa del Sol Aetheryte  [fav]</span><span class="tag">180g</span></div>
+              <div class="selectable" id="s2-pick"><span class="good">Costa del Sol Aetheryte  [FAV]</span><span class="tag">180g</span></div>
             </div>
           </div>
           <div class="col">
             <div class="accent">Pick a destination on the left.</div>
-            <p class="muted" style="margin-top:8px;line-height:1.45">Search, zone walk-ins, and live or projected aetheryte costs.</p>
+            <p class="muted" style="margin-top:8px;line-height:1.45">Aetherpath prices every way to get there: the plain teleport, your free transfer, a favored slot, aetheryte tickets, Return, estate teleports, and teleporting to a cheaper neighbour and walking in.</p>
           </div>
         </div>
       </div>
@@ -163,14 +163,14 @@
           <span class="accent">AETHER</span><span class="gold">PATH</span>
           <span class="muted"> | free transfer: </span><span class="bad">not set</span>
         </div>
-        <p class="muted" style="font-size:12px;margin:6px 0">No free destination detected — set its aetheryte id in <span class="accent" style="opacity:0.85">/aetherpath cfg</span>.</p>
+        <p class="muted" style="font-size:12px;margin:6px 0">No free destination detected. If you have one (it comes from registering a one-time-password authenticator), type its aetheryte id in <span class="accent" style="opacity:0.85">/aetherpath cfg</span> to price routes around it.</p>
         <hr class="sep" />
         <div class="tree-node">What your slots are worth right now</div>
         <table class="data" style="margin-top:6px">
           <thead><tr><th>Destination</th><th>Full price</th><th>Favored</th></tr></thead>
           <tbody>
             <tr><td>Revenant's Toll Aetheryte</td><td class="gold">920</td><td class="muted">460</td></tr>
-            <tr><td>Camp Dragonhead Aetheryte  [fav]</td><td class="gold">780</td><td class="muted">390</td></tr>
+            <tr><td>Camp Dragonhead Aetheryte</td><td class="gold">780</td><td class="muted">390</td></tr>
           </tbody>
         </table>
         <div class="footer" style="margin-top:10px">live entries: 42, exact: 38, projected: 3, unpriced: 1</div>
@@ -228,7 +228,7 @@
                 <td>Return (home point)</td>
                 <td class="good">0 (free)</td>
                 <td class="good">-640</td>
-                <td>Return recast (15 min)<br><span class="muted">first leg only</span></td>
+                <td>Return off cooldown<br><span class="muted">first leg only</span></td>
               </tr>
             </tbody>
           </table>
