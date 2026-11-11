@@ -66,19 +66,6 @@ public sealed class SlotState
         return FromLive(free, favored, home);
     }
 
-    /// <summary>Build the state from the manual override fields in the config.</summary>
-    public static SlotState FromConfig(Configuration config)
-    {
-        return new SlotState
-        {
-            FreeDestinationId = config.OverrideFreeDestination == 0 ? null : config.OverrideFreeDestination,
-            HomePointId = config.OverrideHomePoint == 0 ? null : config.OverrideHomePoint,
-            IsLive = false,
-            // Preserve slot indices: a value in override slot 2 must stay in slot 2, not compact to slot 0.
-            Favored = SlotLogic.NormalizeFavoredSlots(config.OverrideFavored),
-        };
-    }
-
     /// <summary>
     /// Auto-read with manual override: when the override fields hold anything, they win; otherwise
     /// we use what the game told us.
@@ -119,16 +106,6 @@ public sealed class SlotState
             IsLive = false,
         };
     }
-
-    /// <summary>True when two slot states describe the same configuration.</summary>
-    public bool Matches(SlotState other)
-        => SlotLogic.SlotSetsMatch(
-            this.FreeDestinationId,
-            this.HomePointId,
-            this.Favored,
-            other.FreeDestinationId,
-            other.HomePointId,
-            other.Favored);
 
     private static uint? ReadPlayerAetheryteId(Func<RowRef<Aetheryte>> read)
     {

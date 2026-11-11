@@ -55,13 +55,9 @@ public sealed class GameData
 
     public AetheryteInfo? Get(uint aetheryteId) => this.byId.GetValueOrDefault(aetheryteId);
 
-    public ZoneInfo? GetZone(uint territoryId) => this.zonesByTerritory.GetValueOrDefault(territoryId);
-
     public string TerritoryName(uint territoryId) => this.territoryNames.GetValueOrDefault(territoryId, $"Territory {territoryId}");
 
     public string ZoneName(uint territoryId) => this.zoneNamesByTerritory.GetValueOrDefault((ushort)territoryId, this.TerritoryName(territoryId));
-
-    public string RegionName(uint territoryId) => this.regionNamesByTerritory.GetValueOrDefault(territoryId, string.Empty);
 
     /// <summary>Aetherytes that live in the same zone or the same territory - i.e. reachable on foot / by aethernet.</summary>
     public IEnumerable<uint> WalkNeighbours(uint aetheryteId)
