@@ -151,8 +151,10 @@ public sealed class RoutePlanner
         }
         else if (currentFree != null)
         {
-            var holderBase = currentFree.BaseCost ?? currentFree.LiveCost;
-            option.Note = $"Currently on {currentFree.Label}; that trip would go back to {holderBase:N0} gil.";
+            // The free holder's live fee is 0 and its base unknown; never print that 0 as its full price.
+            option.Note = currentFree.BaseCost is { } holderBase
+                ? $"Currently on {currentFree.Label}; that trip would go back to {holderBase:N0} gil."
+                : $"Currently on {currentFree.Label}; that trip would go back to its full price.";
         }
         else
         {
@@ -451,7 +453,9 @@ public static class SlotOptimizer
             else
             {
                 var displaced = currentFree != null && currentFree.AetheryteId != target.AetheryteId
-                    ? $" {currentFree.Label} would go back to {(currentFree.BaseCost ?? currentFree.LiveCost):N0} gil a trip."
+                    ? currentFree.BaseCost is { } freeBase
+                        ? $" {currentFree.Label} would go back to {freeBase:N0} gil a trip."
+                        : $" {currentFree.Label} would go back to its full price."
                     : string.Empty;
                 advice.Headline = $"Move the free transfer to {target.Label}: 0 gil instead of {baseCost:N0} (saves {baseCost:N0} a trip).{displaced}";
             }
