@@ -123,7 +123,7 @@ Pushes to `main` that change the plugin (not docs-only paths) cut a GitHub relea
 
 ## Tests
 
-Two offline harnesses; neither needs the game. `tools/mathcheck` covers the discount maths in `Core/CostModel.cs` (round-trip stability, ±1 gil favored rounding, unpriced free destinations); `tools/logiccheck` covers slot override merge, projected favored exactness and zone-name walk-in selection (`Core/SlotLogic.cs`). Last run of mathcheck: `ALL CHECKS PASSED`, worst rounding delta 1 gil.
+Two offline harnesses; neither needs the game. `tools/mathcheck` covers the discount maths in `Core/SlotLogic.cs` (round-trip stability, ±1 gil favored rounding, unpriced free destinations); `tools/logiccheck` covers slot override merge, projected favored exactness and zone-name walk-in selection (`Core/SlotLogic.cs`). Last run of mathcheck: `ALL CHECKS PASSED`, worst rounding delta 1 gil.
 
 ```
 cd tools/mathcheck && dotnet run -c Release
@@ -144,7 +144,7 @@ Plugin.cs                  entry point, services, /aetherpath command
 Configuration.cs           preferences and the manual slot overrides
 Core/Models.cs             sheet-level aetheryte and zone records
 Core/GameData.cs           sheet index: names, zones, regions, walk neighbours
-Core/CostModel.cs          live prices, discount inversion, free-destination flag
+Core/CostModel.cs          live prices, free-destination flag
 Core/SlotLogic.cs          pure slot-merge / pricing helpers (no Dalamud)
 Core/SlotState.cs          free/favored/home slot state, live or overridden
 Core/RoutePlanner.cs       ranks every travel option; slot optimizer
