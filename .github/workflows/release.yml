@@ -159,6 +159,14 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Run the logic harness
+        if: steps.plan.outputs.skip != 'true'
+        run: dotnet run --project tools/logiccheck/logiccheck.csproj -c Release
+
+      - name: Run the math harness
+        if: steps.plan.outputs.skip != 'true'
+        run: dotnet run --project tools/mathcheck/mathcheck.csproj -c Release
+
       - name: Install the Dalamud development distribution
         if: steps.plan.outputs.skip != 'true'
         shell: pwsh
