@@ -31,7 +31,8 @@ public sealed class RoutePlanner
         foreach (var target in targets)
         {
             var (cost, exact, baseline) = PriceFor(target, slots, config, model);
-            var fullPrice = baseline ?? target.LiveCost;
+            // No base = the live free destination; off that slot use PriceFor's estimate, not its live 0.
+            var fullPrice = baseline ?? cost;
             var isPaymentTarget = paymentTargets.Contains(target.AetheryteId);
 
             if (config.ConsiderDirect)
