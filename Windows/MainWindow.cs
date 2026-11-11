@@ -37,6 +37,9 @@ public sealed class MainWindow : Window, IDisposable
     private SlotAdvice cachedAdvice = new();
     private SlotState cachedSlots = new();
 
+    private (int RefreshCount, int ZoneCount, bool WalkIn) zoneRowsKey = (-1, -1, false);
+    private List<(ZoneInfo Zone, List<CostModel.Entry> Priced)> zoneRows = new();
+
     public MainWindow(Plugin plugin)
         : base("Aetherpath###AetherpathMainWindow", ImGuiWindowFlags.NoCollapse)
     {
@@ -202,34 +205,13 @@ public sealed class MainWindow : Window, IDisposable
 
         if (this.showZones)
         {
-            var zones = Plugin.GameData.AllZones
-                .Where(z => filter.Length == 0 || z.Label.Contains(filter, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(z => z.Label, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            if (zones.Count > 0)
+            if (Plugin.GameData.AllZones.Any(z => filter.Length == 0 || z.Label.Contains(filter, StringComparison.OrdinalIgnoreCase)))
             {
                 ImGui.TextColored(AccentSoft, "ZONES");
-                foreach (var zone in zones)
+                foreach (var (zone, priced) in this.ZoneRows(model, config))
                 {
-                    var priced = model.Entries
-                        .Where(e => e.TerritoryId == zone.TerritoryId && !e.IsEstate)
-                        .ToList();
-
-                    if (priced.Count == 0)
-                    {
-                        if (!config.IncludeWalkInDestinations)
-                            continue;
-
-                        // Only list walk-in zones that have at least one unlocked neighbour in the same PlaceNameZone.
-                        var zoneName = Plugin.GameData.ZoneName(zone.TerritoryId);
-                        var neighbourIds = SlotLogic.WalkInCandidateIds(
-                            zone.TerritoryId,
-                            zoneName,
-                            Plugin.GameData.AllAetherytes.Select(a => (a.Id, a.TerritoryId, a.ZoneName, a.IsAetheryte, a.Invisible)));
-                        if (!model.Entries.Any(e => neighbourIds.Contains(e.AetheryteId) && !e.IsEstate))
-                            continue;
-                    }
+                    if (filter.Length > 0 && !zone.Label.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
 
                     var label = $"{zone.Label}##zone{zone.TerritoryId}";
                     var selected = this.selectedTerritoryId == zone.TerritoryId;
@@ -278,6 +260,45 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.SameLine();
             this.DrawCostTag(config, entry.LiveCost, entry.BaseIsExact ? string.Empty : "projected");
         }
+    }
+
+    /// <summary>
+    /// Listable zones with their priced entries. Entries only change on a model refresh, so this is
+    /// rebuilt then instead of walking every zone x aetheryte each frame.
+    /// </summary>
+    private List<(ZoneInfo Zone, List<CostModel.Entry> Priced)> ZoneRows(CostModel model, Configuration config)
+    {
+        var key = (model.RefreshCount, Plugin.GameData.AllZones.Count, config.IncludeWalkInDestinations);
+        if (key == this.zoneRowsKey)
+            return this.zoneRows;
+
+        this.zoneRowsKey = key;
+        this.zoneRows = new List<(ZoneInfo, List<CostModel.Entry>)>();
+        foreach (var zone in Plugin.GameData.AllZones.OrderBy(z => z.Label, StringComparer.OrdinalIgnoreCase))
+        {
+            var priced = model.Entries
+                .Where(e => e.TerritoryId == zone.TerritoryId && !e.IsEstate)
+                .ToList();
+
+            if (priced.Count == 0)
+            {
+                if (!config.IncludeWalkInDestinations)
+                    continue;
+
+                // Only list walk-in zones that have at least one unlocked neighbour in the same PlaceNameZone.
+                var zoneName = Plugin.GameData.ZoneName(zone.TerritoryId);
+                var neighbourIds = SlotLogic.WalkInCandidateIds(
+                    zone.TerritoryId,
+                    zoneName,
+                    Plugin.GameData.AllAetherytes.Select(a => (a.Id, a.TerritoryId, a.ZoneName, a.IsAetheryte, a.Invisible)));
+                if (!model.Entries.Any(e => neighbourIds.Contains(e.AetheryteId) && !e.IsEstate))
+                    continue;
+            }
+
+            this.zoneRows.Add((zone, priced));
+        }
+
+        return this.zoneRows;
     }
 
     private void DrawCostTag(Configuration config, uint cost, string suffix)
