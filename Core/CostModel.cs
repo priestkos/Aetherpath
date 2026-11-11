@@ -80,7 +80,6 @@ public sealed class CostModel
         public override string ToString() => this.Label;
     }
 
-    private readonly Dictionary<(uint Id, byte Sub), Entry> byKey = new();
     private readonly Dictionary<uint, Entry> byAetheryteId = new();
 
     private DateTime lastRefresh;
@@ -98,8 +97,6 @@ public sealed class CostModel
 
     public int UnknownCount { get; private set; }
 
-    public DateTime LastRefresh => this.lastRefresh;
-
     public int RefreshCount => this.refreshCount;
 
     public uint? CurrentFreeDestinationId => this.Entries.FirstOrDefault(e => e.IsFreeAetheryte)?.AetheryteId;
@@ -107,8 +104,6 @@ public sealed class CostModel
     public IReadOnlyList<Entry> CurrentFavoured => this.Entries.Where(e => e.IsFavourite).ToList();
 
     public Entry? Get(uint aetheryteId) => this.byAetheryteId.GetValueOrDefault(aetheryteId);
-
-    public Entry? GetExact(uint aetheryteId, byte subIndex) => this.byKey.GetValueOrDefault((aetheryteId, subIndex));
 
     /// <summary>Refresh at most once a second - the teleport list only changes when you move.</summary>
     public void Refresh(bool force = false)
@@ -136,7 +131,6 @@ public sealed class CostModel
         // current territory; read the struct afterwards, never before.
         var length = Plugin.AetheryteList.Length;
         this.Entries.Clear();
-        this.byKey.Clear();
         this.byAetheryteId.Clear();
         this.ExactCount = 0;
         this.EstimatedCount = 0;
@@ -179,7 +173,7 @@ public sealed class CostModel
                 RegionName = info?.RegionName ?? string.Empty,
                 AetherstreamX = info?.AetherstreamX ?? 0,
                 AetherstreamY = info?.AetherstreamY ?? 0,
-                BaseCost = InvertBase(source.GilCost, source.IsFavourite, isFree, out var exact),
+                BaseCost = SlotLogic.InvertBase(source.GilCost, source.IsFavourite, isFree, out var exact),
                 BaseIsExact = exact,
             };
 
@@ -191,7 +185,6 @@ public sealed class CostModel
                 this.EstimatedCount++;
 
             this.Entries.Add(entry);
-            this.byKey[(id, sub)] = entry;
             // Prefer a non-estate row when the same aetheryte id appears with multiple SubIndex values.
             if (!this.byAetheryteId.TryGetValue(id, out var existing) || (existing.IsEstate && !entry.IsEstate))
                 this.byAetheryteId[id] = entry;
@@ -246,56 +239,5 @@ public sealed class CostModel
         }
 
         return result;
-    }
-
-    /// <summary>Undo whatever discount the game already applied, to recover the full price.</summary>
-    private static long? InvertBase(uint liveCost, bool favoured, bool isFree, out bool exact)
-    {
-        exact = true;
-
-        if (isFree)
-        {
-            // The game reports 0 for the free destination; the undiscounted price is not recoverable.
-            if (liveCost == 0)
-            {
-                exact = false;
-                return null;
-            }
-
-            return liveCost;
-        }
-
-        if (!favoured)
-            return liveCost;
-
-        // Favored destinations are billed at 50% of the fee (the 999 gil cap was applied before
-        // discounts). The game's rounding is undocumented, so this is an estimate: +-1 gil.
-        exact = false;
-        return (long)liveCost * 2;
-    }
-
-    /// <summary>Apply the game's favored-destination discount to an undiscounted price.</summary>
-    public static uint ApplyFavoured(long baseCost) => (uint)(baseCost / 2);
-
-    /// <summary>What you would pay with no slots involved at all.</summary>
-    public static uint FullPrice(Entry entry) => (uint)(entry.BaseCost ?? entry.LiveCost);
-
-    /// <summary>Best (lowest) price currently on offer for a destination, and why.</summary>
-    public static (uint Cost, string Via) CheapestKnown(Entry entry, Configuration config)
-    {
-        var candidates = new List<(uint Cost, string Via)>();
-
-        if (config.ConsiderFreeSlot && entry.IsFreeAetheryte)
-            candidates.Add((0, "free destination"));
-        if (config.ConsiderFavoredSlots && entry.IsFavourite)
-            candidates.Add((ApplyFavoured(FullPrice(entry)), "favored slot"));
-        if (config.ConsiderTickets && config.AetheryteTickets > 0)
-            candidates.Add((0, "aetheryte ticket"));
-        if (config.ConsiderDirect)
-            candidates.Add((entry.LiveCost, "direct"));
-
-        return candidates.Count == 0
-            ? (entry.LiveCost, "direct")
-            : candidates.OrderBy(c => c.Cost).First();
     }
 }

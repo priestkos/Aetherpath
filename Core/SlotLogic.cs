@@ -121,12 +121,12 @@ public static class SlotLogic
             return (UnknownCostEstimate, false, null);
 
         if (isFavored)
-            return ((uint)(baseline.Value / 2), false, baseline);
+            return (ApplyFavoured(baseline.Value), false, baseline);
 
         return ((uint)baseline.Value, baseIsExact, baseline);
     }
 
-    /// <summary>Upper-bound estimate for an unpriced destination: the 999 gil teleport fee cap (see CostModel.InvertBase).</summary>
+    /// <summary>Upper-bound estimate for an unpriced destination: the 999 gil teleport fee cap (see InvertBase).</summary>
     public const uint UnknownCostEstimate = 999;
 
     /// <summary>
@@ -146,6 +146,35 @@ public static class SlotLogic
             .Select(a => a.Id)
             .ToHashSet();
     }
+
+    /// <summary>Undo whatever discount the game already applied, to recover the full price.</summary>
+    public static long? InvertBase(uint liveCost, bool favoured, bool isFree, out bool exact)
+    {
+        exact = true;
+
+        if (isFree)
+        {
+            // The game reports 0 for the free destination; the undiscounted price is not recoverable.
+            if (liveCost == 0)
+            {
+                exact = false;
+                return null;
+            }
+
+            return liveCost;
+        }
+
+        if (!favoured)
+            return liveCost;
+
+        // Favored destinations are billed at 50% of the fee (the 999 gil cap was applied before
+        // discounts). The game's rounding is undocumented, so this is an estimate: +-1 gil.
+        exact = false;
+        return (long)liveCost * 2;
+    }
+
+    /// <summary>Apply the game's favored-destination discount to an undiscounted price.</summary>
+    public static uint ApplyFavoured(long baseCost) => (uint)(baseCost / 2);
 
     private static uint? NullIfZero(uint? id) => id is null or 0 ? null : id;
 }

@@ -9,4 +9,8 @@
     <RootNamespace>mathcheck</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="../../Core/SlotLogic.cs" Link="SlotLogic.cs" />
+  </ItemGroup>
+
 </Project>

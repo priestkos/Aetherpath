@@ -167,7 +167,7 @@ public sealed class RoutePlanner
     private static TravelOption BuildFavoredOption(CostModel.Entry target, SlotState slots, CostModel model, long fullPrice)
     {
         var alreadyFavored = slots.IsFavored(target.AetheryteId);
-        var projected = CostModel.ApplyFavoured(fullPrice);
+        var projected = SlotLogic.ApplyFavoured(fullPrice);
 
         var option = new TravelOption
         {
@@ -382,7 +382,7 @@ public sealed class SlotCandidate
     public bool IsFavored { get; init; }
 
     public long FreeSaving => this.BaseCost;
-    public long FavoredSaving => this.BaseCost - CostModel.ApplyFavoured(this.BaseCost);
+    public long FavoredSaving => this.BaseCost - SlotLogic.ApplyFavoured(this.BaseCost);
 }
 
 /// <summary>The "best use of my slots" verdict for one destination.</summary>
@@ -444,7 +444,7 @@ public static class SlotOptimizer
             }
 
             var baseCost = target.BaseCost.Value;
-            var favoredCost = CostModel.ApplyFavoured(baseCost);
+            var favoredCost = SlotLogic.ApplyFavoured(baseCost);
 
             if (slots.IsFree(target.AetheryteId))
             {

@@ -439,7 +439,7 @@ public sealed class MainWindow : Window, IDisposable
                     ImGui.TableSetColumnIndex(1);
                     ImGui.TextColored(Gold, FormatGil(config, candidate.BaseCost));
                     ImGui.TableSetColumnIndex(2);
-                    ImGui.TextColored(Muted, FormatGil(config, CostModel.ApplyFavoured(candidate.BaseCost)));
+                    ImGui.TextColored(Muted, FormatGil(config, SlotLogic.ApplyFavoured(candidate.BaseCost)));
                 }
 
                 ImGui.EndTable();

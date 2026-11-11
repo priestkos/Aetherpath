@@ -1,13 +1,16 @@
-// Reproducible check of the discount maths in ../Aetherpath/Core/CostModel.cs
-// (InvertBase / ApplyFavoured, copied here verbatim).
+// Reproducible check of the discount maths in Core/SlotLogic.cs (InvertBase / ApplyFavoured).
+// OldApplyFavoured / OldInvertBase are the pre-move CostModel copies, kept to prove the move
+// changed nothing.
 //
 //   cd tools/mathcheck && dotnet run -c Release
 //
 // Verifies: round-trip stability, the documented +-1 gil rounding on favored prices,
 // and that undiscounted entries invert exactly.
-static uint ApplyFavoured(long baseCost) => (uint)(baseCost / 2);
+using Aetherpath.Core;
 
-static long? InvertBase(uint liveCost, bool favoured, bool isFree, out bool exact)
+static uint OldApplyFavoured(long baseCost) => (uint)(baseCost / 2);
+
+static long? OldInvertBase(uint liveCost, bool favoured, bool isFree, out bool exact)
 {
     exact = true;
 
@@ -32,10 +35,37 @@ static long? InvertBase(uint liveCost, bool favoured, bool isFree, out bool exac
 var failures = 0;
 long worstDelta = 0;
 
+// Old vs new across the input space the game can hand us.
+var compared = 0;
+for (long b = 0; b <= 200_000; b++)
+{
+    compared++;
+    if (SlotLogic.ApplyFavoured(b) != OldApplyFavoured(b))
+    {
+        Console.WriteLine($"FAIL: ApplyFavoured drifted at {b}");
+        failures++;
+    }
+
+    foreach (var fav in new[] { false, true })
+    foreach (var free in new[] { false, true })
+    {
+        compared++;
+        var n = SlotLogic.InvertBase((uint)b, fav, free, out var ne);
+        var o = OldInvertBase((uint)b, fav, free, out var oe);
+        if (n != o || ne != oe)
+        {
+            Console.WriteLine($"FAIL: InvertBase drifted at live={b} fav={fav} free={free}");
+            failures++;
+        }
+    }
+}
+
+Console.WriteLine($"old vs new: {compared} comparisons");
+
 for (long b = 0; b <= 5000; b++)
 {
-    var favoured = ApplyFavoured(b);
-    var recovered = InvertBase(favoured, favoured: true, isFree: false, out _);
+    var favoured = SlotLogic.ApplyFavoured(b);
+    var recovered = SlotLogic.InvertBase(favoured, favoured: true, isFree: false, out _);
 
     if (recovered == null)
     {
@@ -49,9 +79,9 @@ for (long b = 0; b <= 5000; b++)
 
     // The favored price must be reproducible from the recovered base: that is what the UI does
     // when it projects "what would this cost if I favored it".
-    if (ApplyFavoured(recovered.Value) != favoured)
+    if (SlotLogic.ApplyFavoured(recovered.Value) != favoured)
     {
-        Console.WriteLine($"FAIL: not inverse-stable at base {b} (fav {favoured} -> {recovered} -> {ApplyFavoured(recovered.Value)})");
+        Console.WriteLine($"FAIL: not inverse-stable at base {b} (fav {favoured} -> {recovered} -> {SlotLogic.ApplyFavoured(recovered.Value)})");
         failures++;
     }
 
@@ -62,7 +92,7 @@ for (long b = 0; b <= 5000; b++)
         failures++;
     }
 
-    var plain = InvertBase((uint)b, favoured: false, isFree: false, out var plainExact);
+    var plain = SlotLogic.InvertBase((uint)b, favoured: false, isFree: false, out var plainExact);
     if (plain != b || !plainExact)
     {
         Console.WriteLine($"FAIL: plain entry base {b} -> {plain} exact={plainExact}");
@@ -70,7 +100,7 @@ for (long b = 0; b <= 5000; b++)
     }
 
     // A free destination reporting 0 gil must be reported as unpriced, not as 0 gil base.
-    var free = InvertBase(0, favoured: false, isFree: true, out var freeExact);
+    var free = SlotLogic.InvertBase(0, favoured: false, isFree: true, out var freeExact);
     if (free != null || freeExact)
     {
         Console.WriteLine("FAIL: free destination with 0 gil was priced instead of flagged unknown");
@@ -81,7 +111,7 @@ for (long b = 0; b <= 5000; b++)
 // Spot checks against real-world teleport prices.
 foreach (var (live, expectBase) in new (uint, long)[] { (100, 200), (500, 1000), (750, 1500), (999, 1998), (1000, 2000), (1250, 2500) })
 {
-    var got = InvertBase(live, favoured: true, isFree: false, out var exact);
+    var got = SlotLogic.InvertBase(live, favoured: true, isFree: false, out var exact);
     var ok = got == expectBase && !exact;
     Console.WriteLine($"favored {live,5} -> base {got,5} (expected {expectBase,5}, flagged projected: {!exact}) {(ok ? "ok" : "MISMATCH")}");
     if (!ok)
