@@ -166,6 +166,66 @@ void Ok(string message) => Console.WriteLine($"ok: {message}");
         Ok("WalkInCandidateIds uses PlaceNameZone, skips region peers / shards / invisible");
 }
 
+// ---- NormalizeFavoredSlots pads null and truncates past the slot count -------
+{
+    var padded = SlotLogic.NormalizeFavoredSlots(null);
+    var cut = SlotLogic.NormalizeFavoredSlots(new uint[] { 1, 2, 3, 4, 5 });
+    if (padded is not [0, 0, 0, 0] || cut is not [1, 2, 3, 4])
+        Fail($"NormalizeFavoredSlots: null=[{string.Join(',', padded)}] five=[{string.Join(',', cut)}]");
+    else
+        Ok("NormalizeFavoredSlots pads null to 4 zeros and drops a 5th slot");
+}
+
+// ---- ResolveOverrides: auto-read off ignores the live slots ----------------
+{
+    var (free, home, favored, isLive) = SlotLogic.ResolveOverrides(
+        autoRead: false,
+        overrideFree: 0,
+        overrideHome: 0,
+        overrideFavored: new uint[] { 0, 9, 0, 0 },
+        liveFree: 55,
+        liveHome: 77,
+        liveFavored: new uint[] { 1, 2, 3, 0 });
+
+    if (isLive || free != null || home != null || favored is not [0, 9, 0, 0])
+        Fail($"auto-read off leaked live: free={free} home={home} live={isLive} fav=[{string.Join(',', favored)}]");
+    else
+        Ok("ResolveOverrides with auto-read off uses only the override fields");
+}
+
+// ---- ResolveOverrides: same favored set in another order is still live ------
+{
+    var (_, _, favored, isLive) = SlotLogic.ResolveOverrides(
+        autoRead: true,
+        overrideFree: 0,
+        overrideHome: 0,
+        overrideFavored: new uint[] { 3, 2, 1, 0 },
+        liveFree: 55,
+        liveHome: 77,
+        liveFavored: new uint[] { 1, 2, 3, 0 });
+
+    if (!isLive || favored is not [1, 2, 3, 0])
+        Fail($"reordered favored override should match live: live={isLive} fav=[{string.Join(',', favored)}]");
+    else
+        Ok("ResolveOverrides matches a reordered favored override to live");
+}
+
+// ---- PriceFor: override free destination is 0 and exact, base kept ---------
+{
+    var (cost, exact, baseline) = SlotLogic.PriceFor(
+        liveCost: 600,
+        baseCost: 600,
+        isLive: false,
+        isFree: true,
+        isFavored: true,
+        baseIsExact: true);
+
+    if (cost != 0 || !exact || baseline != 600)
+        Fail($"override free: cost={cost} exact={exact} baseline={baseline}");
+    else
+        Ok("PriceFor prices an override free destination at exactly 0, free beating favored");
+}
+
 // ---- Configuration list defaults are replaced, not appended, on load --------
 // Source check because Configuration.cs needs Dalamud (and Newtonsoft), which this harness avoids.
 {
